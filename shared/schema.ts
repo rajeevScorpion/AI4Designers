@@ -139,12 +139,21 @@ export interface CourseDay {
   estimatedTime: string;
 }
 
+export interface FlipCardData {
+  title: string;
+  description: string;
+}
+
 export interface CourseSection {
   id: string;
   type: 'content' | 'activity' | 'quiz' | 'video';
   title: string;
   content?: string;
+  contentIntro?: string; // Content before flip cards
+  contentOutro?: string; // Content after flip cards
+  flipCards?: FlipCardData[]; // Array of flip cards for the section
   videoUrl?: string;
+  videoDescription?: string;
   duration?: string;
   description?: string;
   activity?: Activity;

@@ -6,7 +6,7 @@ export const courseData: Record<number, CourseSection[]> = {
       id: "day1-intro",
       type: "content",
       title: "What is Artificial Intelligence?",
-      content: `
+      contentIntro: `
         <h3>Welcome to AI Fundamentals for Designers</h3>
         <p>Welcome to your 5-day journey into Artificial Intelligence! This course is specifically designed for first-year design students who want to understand how AI can enhance their creative work.</p>
         
@@ -22,15 +22,35 @@ export const courseData: Record<number, CourseSection[]> = {
         <p>Artificial Intelligence (AI) is a branch of computer science that creates machines capable of performing tasks that typically require human intelligence. Think of it as teaching computers to "think" and make decisions.</p>
         
         <h4>Key AI Concepts for Designers</h4>
-        <ul>
-          <li><strong>Machine Learning:</strong> Algorithms that learn from data without explicit programming</li>
-          <li><strong>Neural Networks:</strong> Computing systems inspired by the human brain</li>
-          <li><strong>Deep Learning:</strong> Advanced machine learning using multiple layers</li>
-          <li><strong>Generative AI:</strong> AI that creates new content (text, images, music)</li>
-          <li><strong>Computer Vision:</strong> AI that can "see" and analyze images</li>
-          <li><strong>Natural Language Processing:</strong> AI that understands and generates human language</li>
-        </ul>
-        
+        <p>Click on each card below to learn more about these fundamental AI concepts:</p>
+      `,
+      flipCards: [
+        {
+          title: "Machine Learning",
+          description: "Machine Learning is a subset of AI where algorithms learn patterns from data without being explicitly programmed. It's like teaching a computer through examples rather than instructions. In design, ML powers personalization features, user behavior prediction, and A/B testing optimization."
+        },
+        {
+          title: "Neural Networks",
+          description: "Neural Networks are computing systems inspired by the human brain's interconnected neurons. They process information in layers, recognizing patterns and making decisions. These networks are the foundation of modern AI, enabling everything from image recognition to natural language understanding."
+        },
+        {
+          title: "Deep Learning",
+          description: "Deep Learning uses neural networks with many layers (hence 'deep') to process complex data. It excels at tasks like image classification, speech recognition, and language translation. For designers, deep learning powers tools that can understand visual aesthetics and generate creative content."
+        },
+        {
+          title: "Generative AI",
+          description: "Generative AI creates entirely new content—text, images, music, or code—based on patterns learned from training data. Tools like DALL-E, Midjourney, and ChatGPT are revolutionizing creative workflows by helping designers generate ideas, create variations, and explore new possibilities."
+        },
+        {
+          title: "Computer Vision",
+          description: "Computer Vision enables AI to 'see' and understand visual information from images and videos. It can detect objects, recognize faces, and analyze scenes. Designers use computer vision for tasks like automatic image tagging, content-aware editing, and augmented reality experiences."
+        },
+        {
+          title: "Natural Language Processing",
+          description: "NLP allows AI to understand, interpret, and generate human language. It powers chatbots, translation services, and content creation tools. For designers, NLP is invaluable for generating copy, conducting user research through sentiment analysis, and creating conversational interfaces."
+        }
+      ],
+      contentOutro: `
         <h4>Why AI Matters for Designers</h4>
         <p>AI isn't here to replace designers—it's here to supercharge your creativity. Modern AI tools can help you:</p>
         <ul>
@@ -171,7 +191,7 @@ export const courseData: Record<number, CourseSection[]> = {
       id: "day2-intro",
       type: "content",
       title: "Types of AI and How They Work",
-      content: `
+      contentIntro: `
         <h3>Day 2: Understanding Different Types of AI</h3>
         <p>Today we'll dive deeper into the different categories of AI and understand how each type works. This knowledge will help you choose the right AI tools for your design projects.</p>
         
@@ -191,35 +211,37 @@ export const courseData: Record<number, CourseSection[]> = {
         </ul>
         
         <h4>AI Technologies Relevant to Design</h4>
-        <p>As a designer, you'll primarily work with these types of AI:</p>
-        
-        <h5>1. Machine Learning (ML)</h5>
-        <p>Algorithms that learn patterns from data to make predictions or decisions.</p>
-        <ul>
-          <li><strong>Use in Design:</strong> Personalization, user behavior prediction, A/B testing</li>
-          <li><strong>Examples:</strong> Netflix recommendations, Spotify playlists, social media feeds</li>
-        </ul>
-        
-        <h5>2. Deep Learning</h5>
-        <p>A subset of ML using neural networks with many layers to process complex data.</p>
-        <ul>
-          <li><strong>Use in Design:</strong> Image recognition, style transfer, content generation</li>
-          <li><strong>Examples:</strong> Photo enhancement, automatic tagging, style filters</li>
-        </ul>
-        
-        <h5>3. Computer Vision</h5>
-        <p>AI that can analyze and understand visual information.</p>
-        <ul>
-          <li><strong>Use in Design:</strong> Image analysis, object detection, quality control</li>
-          <li><strong>Examples:</strong> Adobe's Content-Aware Fill, Google Lens, AR filters</li>
-        </ul>
-        
-        <h5>4. Natural Language Processing (NLP)</h5>
-        <p>AI that understands and generates human language.</p>
-        <ul>
-          <li><strong>Use in Design:</strong> Content creation, copywriting, user research</li>
-          <li><strong>Examples:</strong> ChatGPT, Grammarly, automated surveys</li>
-        </ul>
+        <p>As a designer, you'll primarily work with these types of AI. Click each card to explore:</p>
+      `,
+      flipCards: [
+        {
+          title: "Machine Learning (ML)",
+          description: "Machine Learning algorithms learn patterns from data to make predictions or decisions. In design, ML powers personalization features, user behavior prediction, and A/B testing optimization. Examples include Netflix recommendations, Spotify playlists, and social media feeds that adapt to user preferences."
+        },
+        {
+          title: "Deep Learning",
+          description: "A subset of ML using neural networks with many layers to process complex data. Deep learning excels at image recognition, style transfer, and content generation. It powers tools like photo enhancement filters, automatic image tagging systems, and artistic style transfer applications."
+        },
+        {
+          title: "Computer Vision",
+          description: "AI that can analyze and understand visual information from images and videos. In design, computer vision enables image analysis, object detection, and quality control. Popular applications include Adobe's Content-Aware Fill, Google Lens, and AR filters on social media platforms."
+        },
+        {
+          title: "Natural Language Processing",
+          description: "NLP enables AI to understand and generate human language. For designers, NLP is invaluable for content creation, copywriting, and user research. It powers tools like ChatGPT for creative writing, Grammarly for editing, and automated survey analysis for user feedback."
+        },
+        {
+          title: "Reinforcement Learning",
+          description: "AI that learns through trial and error by receiving rewards for desired behaviors. While less common in design tools, it's used in game design for creating adaptive NPCs and in UX optimization for finding the best user flows through continuous testing."
+        },
+        {
+          title: "Transfer Learning",
+          description: "A technique where AI models trained on one task are adapted for related tasks. This allows designers to use pre-trained models for custom applications, like fine-tuning a general image generator for specific brand styles or adapting text models for industry-specific content."
+        }
+      ],
+      contentOutro: `
+        <h4>Choosing the Right AI for Your Project</h4>
+        <p>Understanding these different AI types helps you select the most appropriate tools for your design challenges. Remember, most modern AI tools combine multiple technologies to deliver powerful creative capabilities.</p>
       `
     },
     {
@@ -380,53 +402,48 @@ export const courseData: Record<number, CourseSection[]> = {
       id: "day3-intro",
       type: "content",
       title: "AI Tools for Designers",
-      content: `
+      contentIntro: `
         <h3>Day 3: Essential AI Tools for Modern Designers</h3>
         <p>Today we'll explore the practical AI tools that are transforming design workflows. You'll learn which tools to use for different tasks and how to integrate them into your creative process.</p>
         
         <h4>Categories of AI Design Tools</h4>
-        
-        <h5>1. Image Generation & Manipulation</h5>
+        <p>Click on each category to discover the best AI tools for different design tasks:</p>
+      `,
+      flipCards: [
+        {
+          title: "Image Generation",
+          description: "Create stunning visuals with AI image generators like DALL-E 3, Midjourney, and Stable Diffusion. These tools turn text descriptions into images, helping you quickly prototype ideas, create concept art, and generate unique assets for your designs."
+        },
+        {
+          title: "Content Creation",
+          description: "AI writing assistants like ChatGPT, Claude, and Jasper help you craft compelling copy, generate ideas, and create content at scale. Perfect for writing product descriptions, marketing copy, user interface text, and creative briefs."
+        },
+        {
+          title: "Design Automation",
+          description: "Tools like Adobe Sensei, Figma AI, and Uizard automate repetitive design tasks. They can remove backgrounds, generate color palettes, suggest layouts, and even convert sketches into digital designs, saving you hours of manual work."
+        },
+        {
+          title: "Video & Animation",
+          description: "RunwayML, Synthesia, and Descript revolutionize video creation with AI. Generate videos from text, create AI avatars, edit videos by editing text transcripts, and add special effects with simple prompts."
+        },
+        {
+          title: "User Research",
+          description: "AI-powered research tools like Maze AI, Hotjar, and UserVoice analyze user behavior, feedback, and testing data to provide actionable insights. They help you understand user needs and validate design decisions with data."
+        },
+        {
+          title: "Creative Enhancement",
+          description: "AI enhancers like Topaz Labs, Gigapixel AI, and Let's Enhance improve image quality, upscale resolution, restore old photos, and add artistic effects. They help you polish and perfect your visual assets."
+        }
+      ],
+      contentOutro: `
+        <h4>Choosing the Right Tools</h4>
+        <p>The key to success with AI tools is selecting the right one for your specific task. Consider factors like:</p>
         <ul>
-          <li><strong>DALL-E 2/3:</strong> High-quality, realistic image generation</li>
-          <li><strong>Midjourney:</strong> Artistic and stylized image creation</li>
-          <li><strong>Stable Diffusion:</strong> Open-source, customizable image generation</li>
-          <li><strong>Adobe Firefly:</strong> Commercial-safe AI integrated into Creative Suite</li>
-          <li><strong>Canva AI:</strong> User-friendly design tool with AI features</li>
-        </ul>
-        
-        <h5>2. Writing & Content Creation</h5>
-        <ul>
-          <li><strong>ChatGPT:</strong> Versatile text generation and editing</li>
-          <li><strong>Claude:</strong> Advanced reasoning and long-form content</li>
-          <li><strong>Jasper:</strong> Marketing-focused content creation</li>
-          <li><strong>Copy.ai:</strong> Quick copywriting for ads and social media</li>
-          <li><strong>Grammarly:</strong> AI-powered writing assistance</li>
-        </ul>
-        
-        <h5>3. Design Enhancement & Automation</h5>
-        <ul>
-          <li><strong>Adobe Sensei:</strong> AI features across Adobe Creative Suite</li>
-          <li><strong>Figma AI:</strong> Design assistance and automation in Figma</li>
-          <li><strong>Sketch AI:</strong> Smart design features in Sketch</li>
-          <li><strong>Uizard:</strong> Convert sketches to digital designs</li>
-          <li><strong>Khroma:</strong> AI color palette generator</li>
-        </ul>
-        
-        <h5>4. Video & Animation</h5>
-        <ul>
-          <li><strong>RunwayML:</strong> AI video editing and generation</li>
-          <li><strong>Synthesia:</strong> AI avatar video creation</li>
-          <li><strong>Loom AI:</strong> Automated video summaries and editing</li>
-          <li><strong>Descript:</strong> AI-powered video editing with text</li>
-        </ul>
-        
-        <h5>5. Research & Analysis</h5>
-        <ul>
-          <li><strong>Maze AI:</strong> User research and testing insights</li>
-          <li><strong>Hotjar AI:</strong> Automated user behavior analysis</li>
-          <li><strong>UserVoice AI:</strong> Customer feedback analysis</li>
-          <li><strong>Perplexity:</strong> AI-powered research assistant</li>
+          <li><strong>Output Quality:</strong> Does the tool produce professional-grade results?</li>
+          <li><strong>Learning Curve:</strong> How easy is it to get started and master?</li>
+          <li><strong>Integration:</strong> Does it work with your existing workflow and tools?</li>
+          <li><strong>Cost:</strong> Is it within your budget for regular use?</li>
+          <li><strong>Ethics & Rights:</strong> Are the outputs safe for commercial use?</li>
         </ul>
       `
     },
@@ -828,33 +845,47 @@ export const courseData: Record<number, CourseSection[]> = {
       id: "day5-intro",
       type: "content", 
       title: "The Future of AI in Design",
-      content: `
+      contentIntro: `
         <h3>Day 5: Looking Ahead - The Future of AI in Design</h3>
         <p>Welcome to the final day of your AI crash course! Today we'll explore emerging trends, future possibilities, and how you can continue growing with AI as a designer.</p>
         
         <h4>Current State vs. Future Possibilities</h4>
-        
-        <h5>Where We Are Now (2024)</h5>
+        <p>Click on each card below to explore the exciting future of AI in design:</p>
+      `,
+      flipCards: [
+        {
+          title: "Multimodal AI",
+          description: "Future AI systems will seamlessly understand and generate across all media types—text, images, audio, video, and 3D. Imagine describing a concept once and getting a complete brand identity with logo, website, videos, and marketing materials instantly."
+        },
+        {
+          title: "Real-time Collaboration",
+          description: "AI will work alongside you in real-time, offering suggestions as you design, automatically creating variations, and even participating in brainstorming sessions. It's like having an infinitely creative partner who never gets tired."
+        },
+        {
+          title: "Personalized AI Assistants",
+          description: "Your AI assistant will learn your unique style, preferences, and workflows. It will anticipate your needs, maintain brand consistency across projects, and even handle routine client communications in your voice."
+        },
+        {
+          title: "3D & Spatial Design",
+          description: "AI will revolutionize 3D modeling, AR/VR experiences, and spatial computing. Create immersive environments with text prompts, design virtual products that users can interact with, and build entire metaverse experiences effortlessly."
+        },
+        {
+          title: "Autonomous Design Systems",
+          description: "Advanced AI will handle complete design projects from brief to delivery. It will conduct user research, generate concepts, create designs, test with users, iterate based on feedback, and prepare final deliverables—all while you focus on strategy and creative direction."
+        },
+        {
+          title: "Emotional Intelligence",
+          description: "Future AI will understand human emotions and cultural nuances, creating designs that resonate on a deeper level. It will predict emotional responses to colors, layouts, and content, helping you create more impactful and meaningful designs."
+        }
+      ],
+      contentOutro: `
+        <h4>Timeline of AI Evolution</h4>
         <ul>
-          <li>Text-to-image generation with high quality output</li>
-          <li>AI-assisted writing and content creation</li>
-          <li>Automated design tasks and enhancements</li>
-          <li>Style transfer and image manipulation</li>
-          <li>Basic conversation and reasoning capabilities</li>
+          <li><strong>2024-2025:</strong> Refinement of current tools, better integration, improved quality</li>
+          <li><strong>2025-2026:</strong> Multimodal capabilities, real-time generation, 3D design</li>
+          <li><strong>2027-2028:</strong> Personalized AI assistants, emotional intelligence</li>
+          <li><strong>2029-2030:</strong> Autonomous design systems, AI creative directors</li>
         </ul>
-        
-        <h5>Emerging Trends (2025-2026)</h5>
-        <ul>
-          <li><strong>Multimodal AI:</strong> Systems that understand text, images, audio, and video together</li>
-          <li><strong>Real-time Generation:</strong> Instant AI responses and live collaboration</li>
-          <li><strong>3D and Spatial Design:</strong> AI for 3D modeling, AR/VR experiences</li>
-          <li><strong>Personalized AI Assistants:</strong> AI that learns your specific style and preferences</li>
-          <li><strong>Code Generation:</strong> AI that can build functional websites and apps</li>
-        </ul>
-        
-        <h5>Future Possibilities (2027+)</h5>
-        <ul>
-          <li><strong>Autonomous Design Systems:</strong> AI that can complete entire projects independently</li>
           <li><strong>Emotional Intelligence:</strong> AI that understands and responds to human emotions</li>
           <li><strong>Predictive Design:</strong> AI that anticipates user needs before they're expressed</li>
           <li><strong>Seamless Integration:</strong> AI embedded in every tool and workflow</li>

@@ -1,13 +1,51 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Play, ExternalLink, BookOpen } from "lucide-react"
+import { 
+  CheckCircle, Play, ExternalLink, BookOpen, Brain, Network, Cpu, 
+  Sparkles, Eye, MessageSquare, Layers, Zap, Bot, Lightbulb, 
+  Code2, Palette, Image, Wand2, Database, Cloud, Shield, TrendingUp 
+} from "lucide-react"
+import { FlipCard } from "@/components/flip-card"
 import type { CourseSection } from "@shared/schema"
+import type { LucideIcon } from "lucide-react"
 
 interface SectionContentProps {
   section: CourseSection
   isCompleted: boolean
   onMarkComplete: (sectionId: string) => void
+}
+
+// Helper function to get appropriate icon for concept
+function getIconForConcept(title: string): LucideIcon {
+  const lowerTitle = title.toLowerCase()
+  
+  if (lowerTitle.includes('machine learning')) return Brain
+  if (lowerTitle.includes('neural network')) return Network
+  if (lowerTitle.includes('deep learning')) return Layers
+  if (lowerTitle.includes('generative ai')) return Sparkles
+  if (lowerTitle.includes('computer vision')) return Eye
+  if (lowerTitle.includes('natural language') || lowerTitle.includes('nlp')) return MessageSquare
+  if (lowerTitle.includes('artificial intelligence') || lowerTitle.includes('ai')) return Bot
+  if (lowerTitle.includes('algorithm')) return Code2
+  if (lowerTitle.includes('creativity') || lowerTitle.includes('creative')) return Palette
+  if (lowerTitle.includes('image') || lowerTitle.includes('visual')) return Image
+  if (lowerTitle.includes('automation') || lowerTitle.includes('automate')) return Zap
+  if (lowerTitle.includes('transform') || lowerTitle.includes('magic')) return Wand2
+  if (lowerTitle.includes('data')) return Database
+  if (lowerTitle.includes('cloud') || lowerTitle.includes('api')) return Cloud
+  if (lowerTitle.includes('security') || lowerTitle.includes('privacy')) return Shield
+  if (lowerTitle.includes('future') || lowerTitle.includes('trend')) return TrendingUp
+  if (lowerTitle.includes('idea') || lowerTitle.includes('concept')) return Lightbulb
+  if (lowerTitle.includes('processing') || lowerTitle.includes('compute')) return Cpu
+  
+  return Brain // Default icon
+}
+
+// Helper function to get color for index
+function getColorForIndex(index: number): string {
+  const colors = ['primary', 'chart-1', 'chart-2', 'chart-3', 'chart-4', 'chart-5']
+  return colors[index % colors.length]
 }
 
 export function SectionContent({ section, isCompleted, onMarkComplete }: SectionContentProps) {
@@ -27,9 +65,45 @@ export function SectionContent({ section, isCompleted, onMarkComplete }: Section
           {isCompleted && <CheckCircle className="w-5 h-5 text-chart-3" />}
         </div>
         
-        <div className="prose prose-sm max-w-none mb-6">
-          <div dangerouslySetInnerHTML={{ __html: section.content || '' }} />
-        </div>
+        {/* Check if section has flip cards */}
+        {section.flipCards && section.flipCards.length > 0 ? (
+          <>
+            {/* Intro content before flip cards */}
+            {section.contentIntro && (
+              <div className="prose prose-sm max-w-none mb-6">
+                <div dangerouslySetInnerHTML={{ __html: section.contentIntro }} />
+              </div>
+            )}
+            
+            {/* Flip cards grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {section.flipCards.map((card, index) => {
+                const IconComponent = getIconForConcept(card.title)
+                return (
+                  <FlipCard
+                    key={index}
+                    icon={IconComponent}
+                    title={card.title}
+                    description={card.description}
+                    color={getColorForIndex(index)}
+                  />
+                )
+              })}
+            </div>
+            
+            {/* Outro content after flip cards */}
+            {section.contentOutro && (
+              <div className="prose prose-sm max-w-none mb-6">
+                <div dangerouslySetInnerHTML={{ __html: section.contentOutro }} />
+              </div>
+            )}
+          </>
+        ) : (
+          /* Regular content without flip cards */
+          <div className="prose prose-sm max-w-none mb-6">
+            <div dangerouslySetInnerHTML={{ __html: section.content || '' }} />
+          </div>
+        )}
         
         {!isCompleted && (
           <Button onClick={handleMarkComplete} data-testid={`button-complete-${section.id}`}>
