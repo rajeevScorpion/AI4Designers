@@ -35,7 +35,8 @@
       "Bash(git push:*)",
       "mcp__vercel__deploy_to_vercel",
       "Bash(vercel:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
