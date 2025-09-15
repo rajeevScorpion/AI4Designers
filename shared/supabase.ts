@@ -16,7 +16,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Client for server-side/admin operations
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+export const supabaseAdmin = supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : supabase;
 
 // Types for database operations
 export type Database = {
@@ -29,6 +29,15 @@ export type Database = {
           first_name: string | null;
           last_name: string | null;
           profile_image_url: string | null;
+          full_name: string | null;
+          phone: string | null;
+          profession: string | null;
+          course_type: string | null;
+          stream: string | null;
+          field_of_work: string | null;
+          designation: string | null;
+          organization: string | null;
+          date_of_birth: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -38,6 +47,15 @@ export type Database = {
           first_name?: string | null;
           last_name?: string | null;
           profile_image_url?: string | null;
+          full_name?: string | null;
+          phone?: string | null;
+          profession?: string | null;
+          course_type?: string | null;
+          stream?: string | null;
+          field_of_work?: string | null;
+          designation?: string | null;
+          organization?: string | null;
+          date_of_birth?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -47,6 +65,15 @@ export type Database = {
           first_name?: string | null;
           last_name?: string | null;
           profile_image_url?: string | null;
+          full_name?: string | null;
+          phone?: string | null;
+          profession?: string | null;
+          course_type?: string | null;
+          stream?: string | null;
+          field_of_work?: string | null;
+          designation?: string | null;
+          organization?: string | null;
+          date_of_birth?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -202,6 +229,28 @@ export const db = {
     const { data, error } = await supabaseAdmin
       .from('users')
       .upsert(userData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async updateUser(userId: string, userData: {
+    full_name?: string | null;
+    phone?: string | null;
+    profession?: string | null;
+    course_type?: string | null;
+    stream?: string | null;
+    field_of_work?: string | null;
+    designation?: string | null;
+    organization?: string | null;
+    date_of_birth?: string | null;
+  }) {
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .update(userData)
+      .eq('id', userId)
       .select()
       .single();
 

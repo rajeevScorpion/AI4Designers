@@ -8,7 +8,8 @@ import { SectionContent } from "@/components/section-content"
 import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
 import { TabbedVideoSection } from "@/components/tabbed-video-section"
-import { ArrowLeft, ArrowRight, CheckCircle, LogIn } from "lucide-react"
+import { DayStickyNav } from "@/components/day-sticky-nav"
+import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
 import { useLocation } from "wouter"
 import type { CourseDay, CourseSection } from "@shared/schema"
 import { courseData } from "@shared/courseData"
@@ -21,10 +22,11 @@ export default function Day({ isAuthenticated = false }: DayProps) {
   const [, params] = useRoute("/day/:dayId")
   const [, navigate] = useLocation()
   const dayId = parseInt(params?.dayId || "1")
-  
+
   // todo: remove mock functionality - replace with real data from API
   const [completedSections, setCompletedSections] = useState<string[]>([])
   const [quizScores, setQuizScores] = useState<Record<string, number>>({})
+  const [currentPage, setCurrentPage] = useState(0)
 
   // Use real course data instead of mock data
   const dayData: CourseDay = {
@@ -34,6 +36,19 @@ export default function Day({ isAuthenticated = false }: DayProps) {
     estimatedTime: getDayTime(dayId),
     sections: courseData[dayId] || []
   }
+
+  // Pagination: Split sections into pages (1 section per page, max 5 pages)
+  const sectionsPerPage = 1  // Show 1 section per page
+  const totalPages = Math.min(dayData.sections.length, 5)  // Max 5 pages per day
+  const startIndex = currentPage * sectionsPerPage
+  const endIndex = startIndex + sectionsPerPage
+  const currentSections = dayData.sections.slice(startIndex, endIndex)
+
+  // Check if all sections on current page are completed
+  const currentPageSections = currentSections.map(section => section.id)
+  const currentPageCompleted = currentPageSections.every(sectionId =>
+    completedSections.includes(sectionId)
+  )
 
   const progress = (completedSections.length / dayData.sections.length) * 100
 
@@ -64,81 +79,52 @@ export default function Day({ isAuthenticated = false }: DayProps) {
     }
   }
 
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(prev => prev + 1)
+    }
+  }
+
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(prev => prev - 1)
+    }
+  }
+
   const canProceed = completedSections.length === dayData.sections.length
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Day Header */}
-      <div className="border-b bg-card">
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate('/')}
-              data-testid="button-back-home"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Course Home
-            </Button>
-            <Badge variant="outline">Day {dayId} of 5</Badge>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2" data-testid={`text-day-${dayId}-title`}>
-                {dayData.title}
-              </h1>
-              <p className="text-muted-foreground">{dayData.description}</p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>⏱️ {dayData.estimatedTime}</span>
-                <span>📚 {dayData.sections.length} sections</span>
-                <span>✅ {completedSections.length} completed</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Progress:</span>
-                <div className="w-32">
-                  <Progress value={progress} className="h-2" />
-                </div>
-                <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Sticky Navigation */}
+      <DayStickyNav
+        dayId={dayId}
+        title={dayData.title}
+        estimatedTime={dayData.estimatedTime}
+        sectionsCount={dayData.sections.length}
+        completedSections={completedSections}
+        progress={progress}
+        isAuthenticated={isAuthenticated}
+      />
 
-      {/* Authentication Prompt for Unauthenticated Users */}
-      {!isAuthenticated && (
-        <div className="bg-primary/10 border-primary/20 border-b">
-          <div className="max-w-4xl mx-auto p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <LogIn className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-sm">Sign in to save your progress</p>
-                  <p className="text-xs text-muted-foreground">Your progress will be lost when you close this tab</p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => window.location.href = '/api/login'}
-                size="sm"
-                data-testid="button-sign-in-prompt"
-              >
-                Sign In
-              </Button>
+      {/* Main Content */}
+      <div className="pt-2">
+        {/* Page Header */}
+        <div className="max-w-4xl mx-auto px-6 pt-4 pb-2">
+          <h1 className="text-3xl font-bold mb-2" data-testid={`text-day-${dayId}-title`}>
+            {dayData.title}
+          </h1>
+          <p className="text-muted-foreground mb-4">{dayData.description}</p>
+          {totalPages > 1 && (
+            <div className="text-sm text-muted-foreground mb-4">
+              📄 Page {currentPage + 1} of {totalPages}
             </div>
-          </div>
+          )}
         </div>
-      )}
 
-      {/* Course Content */}
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="space-y-8">
-          {dayData.sections.map((section: CourseSection, index: number) => {
+        {/* Course Content */}
+        <div className="max-w-4xl mx-auto px-6 pb-6">
+          <div className="space-y-8">
+          {currentSections.map((section: CourseSection, index: number) => {
             const isCompleted = completedSections.includes(section.id)
             
             return (
@@ -202,9 +188,42 @@ export default function Day({ isAuthenticated = false }: DayProps) {
           })}
         </div>
 
-        {/* Navigation */}
+        {/* Pagination Navigation */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-8 mt-8 border-t">
+            <Button
+              variant="outline"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 0}
+              data-testid="button-previous-page"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Previous Page
+            </Button>
+
+            <div className="text-center space-y-2">
+              {currentPageCompleted && currentPage < totalPages - 1 ? (
+                <Button
+                  onClick={handleNextPage}
+                  data-testid="button-next-page"
+                >
+                  Next Page
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Badge variant="outline">
+                  Page {currentPage + 1} of {totalPages}
+                </Badge>
+              )}
+            </div>
+
+            <div className="w-20"></div> {/* Spacer for alignment */}
+          </div>
+        )}
+
+        {/* Day Navigation */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-8 mt-8 border-t">
-          <Button 
+          <Button
             variant="outline"
             onClick={handlePreviousDay}
             disabled={dayId === 1}
@@ -227,7 +246,7 @@ export default function Day({ isAuthenticated = false }: DayProps) {
             )}
           </div>
 
-          <Button 
+          <Button
             onClick={handleNextDay}
             disabled={!canProceed}
             data-testid="button-next-day"
@@ -236,6 +255,7 @@ export default function Day({ isAuthenticated = false }: DayProps) {
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
+      </div>
       </div>
     </div>
   )

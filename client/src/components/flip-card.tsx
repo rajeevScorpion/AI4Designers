@@ -32,7 +32,7 @@ export function FlipCard({
   }
 
   return (
-    <div 
+    <div
       className={cn(
         "flip-card-container h-64 w-full cursor-pointer perspective-1000",
         className
@@ -43,6 +43,7 @@ export function FlipCard({
       tabIndex={0}
       aria-label={`${title} card. ${isFlipped ? 'Showing description' : 'Click to flip and see description'}`}
       data-testid={`flip-card-${title.toLowerCase().replace(/\s+/g, '-')}`}
+      style={{ minHeight: '16rem' }}
     >
       <div 
         className={cn(
@@ -73,14 +74,14 @@ export function FlipCard({
         </Card>
 
         {/* Back Face */}
-        <Card 
+        <Card
           className={cn(
             "flip-card-face flip-card-back absolute h-full w-full backface-hidden flex flex-col p-6 rotate-y-180",
             "hover-elevate"
           )}
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Icon 
+          <div className="flex items-center gap-2 mb-3">
+            <Icon
               className={cn(
                 "w-6 h-6",
                 color === "primary" && "text-primary",
@@ -89,14 +90,14 @@ export function FlipCard({
                 color === "chart-3" && "text-chart-3",
                 color === "chart-4" && "text-chart-4",
                 color === "chart-5" && "text-chart-5"
-              )} 
+              )}
             />
             <h3 className="text-lg font-semibold">{title}</h3>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
             <p className="text-sm leading-relaxed">{description}</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-4 text-center">Click to flip back</p>
+          <p className="text-xs text-muted-foreground mt-2 text-center">Click to flip back</p>
         </Card>
       </div>
     </div>

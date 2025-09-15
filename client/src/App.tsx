@@ -8,18 +8,27 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CourseSidebar } from "@/components/course-sidebar";
 import { AuthHeader } from "@/components/auth-header";
+import { Button } from "@/components/ui/button";
+import { Gift } from "lucide-react";
 import Home from "@/pages/home";
 import Day from "@/pages/day";
 import SignIn from "@/pages/signin";
+import SignUp from "@/pages/signup";
+import Profile from "@/pages/profile";
+import Certificate from "@/pages/certificate";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourseProgress } from "@/hooks/useCourseProgress";
+import { useLocation } from "wouter";
 
 function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/signin" component={SignIn} />
+      <Route path="/signup" component={SignUp} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/certificate" component={Certificate} />
       <Route path="/day/:dayId">
         {(params) => <Day isAuthenticated={isAuthenticated} />}
       </Route>
@@ -31,6 +40,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
 function AppContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const { sidebarData, isLoading: progressLoading } = useCourseProgress()
+  const [, navigate] = useLocation()
 
   // Show loading state while fetching auth data
   if (authLoading) {
@@ -91,6 +101,7 @@ function AppContent() {
   // Unauthenticated users get simplified UI without sidebar
   return (
     <div className="min-h-screen bg-background">
+  
       <header className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">AI Fundamentals Course</h1>

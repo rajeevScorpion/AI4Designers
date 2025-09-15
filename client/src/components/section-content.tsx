@@ -1,12 +1,12 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  CheckCircle, Play, ExternalLink, BookOpen, Brain, Network, Cpu, 
-  Sparkles, Eye, MessageSquare, Layers, Zap, Bot, Lightbulb, 
-  Code2, Palette, Image, Wand2, Database, Cloud, Shield, TrendingUp 
+import {
+  CheckCircle, Play, ExternalLink, BookOpen, Brain, Network, Cpu,
+  Sparkles, Eye, MessageSquare, Layers, Zap, Bot, Lightbulb,
+  Code2, Palette, Image, Wand2, Database, Cloud, Shield, TrendingUp
 } from "lucide-react"
-import { FlipCard } from "@/components/flip-card"
+import { ConceptCard } from "@/components/concept-card"
 import type { CourseSection } from "@shared/schema"
 import type { LucideIcon } from "lucide-react"
 
@@ -65,33 +65,32 @@ export function SectionContent({ section, isCompleted, onMarkComplete }: Section
           {isCompleted && <CheckCircle className="w-5 h-5 text-chart-3" />}
         </div>
         
-        {/* Check if section has flip cards */}
+        {/* Check if section has concept cards */}
         {section.flipCards && section.flipCards.length > 0 ? (
           <>
-            {/* Intro content before flip cards */}
+            {/* Intro content before concept cards */}
             {section.contentIntro && (
               <div className="prose prose-sm max-w-none mb-6">
                 <div dangerouslySetInnerHTML={{ __html: section.contentIntro }} />
               </div>
             )}
-            
-            {/* Flip cards grid */}
+
+            {/* Concept cards grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {section.flipCards.map((card, index) => {
                 const IconComponent = getIconForConcept(card.title)
                 return (
-                  <FlipCard
+                  <ConceptCard
                     key={index}
                     icon={IconComponent}
                     title={card.title}
                     description={card.description}
-                    color={getColorForIndex(index)}
                   />
                 )
               })}
             </div>
-            
-            {/* Outro content after flip cards */}
+
+            {/* Outro content after concept cards */}
             {section.contentOutro && (
               <div className="prose prose-sm max-w-none mb-6">
                 <div dangerouslySetInnerHTML={{ __html: section.contentOutro }} />
@@ -99,7 +98,7 @@ export function SectionContent({ section, isCompleted, onMarkComplete }: Section
             )}
           </>
         ) : (
-          /* Regular content without flip cards */
+          /* Regular content without concept cards */
           <div className="prose prose-sm max-w-none mb-6">
             <div dangerouslySetInnerHTML={{ __html: section.content || '' }} />
           </div>

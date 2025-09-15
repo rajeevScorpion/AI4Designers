@@ -5,11 +5,13 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { DayNavigation } from "@/components/day-navigation"
 import { CourseHeader } from "@/components/course-header"
-import { ArrowRight, BookOpen, Users, Clock, Award } from "lucide-react"
+import { ArrowRight, BookOpen, Users, Clock, Award, Gift } from "lucide-react"
 import { useLocation } from "wouter"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function Home() {
   const [, navigate] = useLocation()
+  const { isAuthenticated } = useAuth()
   
   // todo: remove mock functionality - replace with real data from API
   const [mockProgress] = useState({

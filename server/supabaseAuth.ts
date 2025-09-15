@@ -9,11 +9,11 @@ config({ path: '.env.local' });
 
 // Helper to create a cookie-compatible storage for Express
 const createCookieStorage = (req: Request, res: Response) => ({
-  getCookie: (name) => {
+  getCookie: (name: string) => {
     const cookie = req.headers.cookie?.split(';').find(c => c.trim().startsWith(`${name}=`));
     return cookie ? cookie.split('=')[1] : undefined;
   },
-  setCookie: (name, value, options) => {
+  setCookie: (name: string, value: string, options: any) => {
     let cookieString = `${name}=${value}`;
     if (options.path) cookieString += `; Path=${options.path}`;
     if (options.maxAge) cookieString += `; Max-Age=${options.maxAge}`;
@@ -23,7 +23,7 @@ const createCookieStorage = (req: Request, res: Response) => ({
     if (options.sameSite) cookieString += `; SameSite=${options.sameSite}`;
     res.setHeader('Set-Cookie', cookieString);
   },
-  deleteCookie: (name, options) => {
+  deleteCookie: (name: string, options: any) => {
     let cookieString = `${name}=; Max-Age=0`;
     if (options.path) cookieString += `; Path=${options.path}`;
     if (options.domain) cookieString += `; Domain=${options.domain}`;
@@ -128,10 +128,10 @@ export const optionalAuth = async (req: Request, res: Response, next: Function) 
 // Auth routes setup
 export const setupAuthRoutes = (app: any) => {
   // Get current user
-  app.get('/api/auth/user', authenticateUser, async (req: any, res) => {
+  app.get('/api/auth/user', authenticateUser, async (req: any, res: any) => {
     try {
       const userId = req.user.id;
-      const user = await supabaseAdmin.getUser(userId);
+      const { data: user } = await supabaseAdmin.auth.admin.getUserById(userId);
       res.json(user);
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -140,19 +140,27 @@ export const setupAuthRoutes = (app: any) => {
   });
 
   // Update user profile
-  app.put('/api/auth/user', authenticateUser, async (req: any, res) => {
+  app.put('/api/auth/user', authenticateUser, async (req: any, res: any) => {
     try {
       const userId = req.user.id;
       const { first_name, last_name, profile_image_url } = req.body;
 
-      const updatedUser = await supabaseAdmin.upsertUser({
-        id: userId,
-        first_name,
-        last_name,
-        profile_image_url
-      });
+      const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        {
+          user_metadata: {
+            first_name,
+            last_name,
+            profile_image_url
+          }
+        }
+      );
 
-      res.json(updatedUser);
+      if (error) {
+        return res.status(400).json({ message: error.message });
+      }
+
+      res.json(data.user);
     } catch (error) {
       console.error('Error updating user:', error);
       res.status(500).json({ message: 'Failed to update user' });
@@ -261,7 +269,7 @@ export const setupAuthRoutes = (app: any) => {
       res.clearCookie('supabase_token', {
         path: '/',
         secure: true,
-        sameSite: 'Lax'
+        sameSite: 'lax'
       });
 
       // Redirect to home page

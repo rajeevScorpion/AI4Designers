@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { LogIn, LogOut, User } from "lucide-react"
+import { LogIn, LogOut, User, Settings } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { handleLogout } from "@/lib/authUtils"
 
@@ -66,6 +66,10 @@ export function AuthHeader() {
           </div>
         </div>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => window.location.href = '/profile'} className="w-full cursor-pointer">
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Profile</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout} className="w-full cursor-pointer" data-testid="link-logout">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>

@@ -4,51 +4,74 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, Lock, Eye, EyeOff, Chrome } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, User, Chrome } from "lucide-react"
 import { useLocation } from "wouter"
-import { Checkbox } from "@/components/ui/checkbox"
 
-export default function SignIn() {
+export default function SignUp() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [fullName, setFullName] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const [, setLocation] = useLocation()
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError("")
+    setSuccess("")
+
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      setIsLoading(false)
+      return
+    }
+
+    // Validate password strength
+    if (!validatePassword(password)) {
+      setError("Password must be at least 6 characters long")
+      setIsLoading(false)
+      return
+    }
 
     try {
-      const response = await fetch("/api/auth/signin", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          metadata: {
+            signupSource: "email"
+          }
+        }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Sign in failed")
+        throw new Error(data.message || "Sign up failed")
       }
 
-      // Store the token and redirect to home
-      if (data.session?.access_token) {
-        localStorage.setItem("supabase_token", data.session.access_token)
-        // Also set as cookie for server-side access
-        const cookieOptions = rememberMe ?
-          `; path=/; max-age=2592000; Secure; SameSite=Lax` :
-          `; path=/; max-age=604800; Secure; SameSite=Lax`
-        document.cookie = `supabase_token=${data.session.access_token}${cookieOptions}`
-        setLocation("/")
-      } else {
-        setLocation("/")
-      }
+      setSuccess("Account created successfully! Please check your email to verify your account.")
+
+      // Redirect to sign in after 2 seconds
+      setTimeout(() => {
+        setLocation("/signin")
+      }, 2000)
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
@@ -73,9 +96,9 @@ export default function SignIn() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-xl border-border/50">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
           <CardDescription className="text-center">
-            Welcome back to AI Fundamentals Course
+            Join AI Fundamentals Course and start your learning journey
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -85,6 +108,28 @@ export default function SignIn() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            {success && (
+              <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -109,7 +154,7 @@ export default function SignIn() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
@@ -131,27 +176,33 @@ export default function SignIn() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pl-10 pr-10"
+                  required
                 />
-                <Label
-                  htmlFor="remember"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  Remember me
-                </Label>
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                className="p-0 h-auto text-sm"
-                type="button"
-              >
-                Forgot password?
-              </Button>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
@@ -160,7 +211,7 @@ export default function SignIn() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
 
             <div className="relative">
@@ -168,7 +219,7 @@ export default function SignIn() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
 
@@ -180,18 +231,18 @@ export default function SignIn() {
               disabled={isLoading}
             >
               <Chrome className="mr-2 h-4 w-4" />
-              Sign in with Google
+              Sign up with Google
             </Button>
 
             <div className="text-center text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Already have an account?{' '}
               <Button
                 variant="ghost"
                 className="p-0 h-auto text-sm"
                 type="button"
-                onClick={() => setLocation('/signup')}
+                onClick={() => setLocation("/signin")}
               >
-                Sign up with email
+                Sign in
               </Button>
             </div>
           </CardFooter>

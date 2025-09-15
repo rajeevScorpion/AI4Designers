@@ -26,6 +26,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile routes
+  app.get('/api/profile', authenticateUser, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await db.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  app.put('/api/profile', authenticateUser, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const profileData = req.body;
+
+      // Update user profile
+      const updatedUser = await db.updateUser(userId, {
+        full_name: profileData.fullName,
+        phone: profileData.phone,
+        profession: profileData.profession,
+        course_type: profileData.courseType,
+        stream: profileData.stream,
+        field_of_work: profileData.fieldOfWork,
+        designation: profileData.designation,
+        organization: profileData.organization,
+        date_of_birth: profileData.dateOfBirth
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Course progress routes
   app.get('/api/progress', authenticateUser, async (req: any, res) => {
     try {

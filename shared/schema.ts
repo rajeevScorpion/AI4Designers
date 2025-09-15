@@ -32,6 +32,16 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  // Profile information
+  fullName: varchar("full_name"),
+  phone: varchar("phone"),
+  profession: varchar("profession").default("student"), // 'student' or 'working'
+  courseType: varchar("course_type"), // UG, PG, Diploma (for students)
+  stream: varchar("stream"), // Graphic Design, UX Design, etc. (for students)
+  fieldOfWork: varchar("field_of_work"), // UI/UX Design, Product Design, etc. (for professionals)
+  designation: varchar("designation"), // Senior Designer, Design Lead, etc. (for professionals)
+  organization: varchar("organization"), // College name or company name
+  dateOfBirth: varchar("date_of_birth"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

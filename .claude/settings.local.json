@@ -20,7 +20,14 @@
       "Bash(netstat:*)",
       "Bash(taskkill:*)",
       "Bash(npx playwright test:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_press_key",
+      "Bash(mcp__supabase__list_projects:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
