@@ -11,12 +11,14 @@ export interface User {
 }
 
 export function useAuth() {
-  const { data: user, isLoading } = useQuery<User>({
+  const { data: user, isLoading } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
+    // Uses global queryFn with proper 401 handling
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes - don't refetch auth status frequently
-    refetchOnWindowFocus: false, // Prevent refetch when window gains focus
-    refetchOnMount: false, // Only fetch once per session
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: true, // Only refetch on first mount, not 'always'
+    refetchOnReconnect: false, // Don't refetch on reconnect
   });
 
   return {

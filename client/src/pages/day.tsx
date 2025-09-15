@@ -9,13 +9,15 @@ import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
 import { ArrowLeft, ArrowRight, CheckCircle, LogIn } from "lucide-react"
 import { useLocation } from "wouter"
-import { useAuth } from "@/hooks/useAuth"
 import type { CourseDay, CourseSection } from "@shared/schema"
 
-export default function Day() {
+interface DayProps {
+  isAuthenticated?: boolean;
+}
+
+export default function Day({ isAuthenticated = false }: DayProps) {
   const [, params] = useRoute("/day/:dayId")
   const [, navigate] = useLocation()
-  const { isAuthenticated } = useAuth()
   const dayId = parseInt(params?.dayId || "1")
   
   // todo: remove mock functionality - replace with real data from API

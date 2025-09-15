@@ -14,11 +14,13 @@ import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourseProgress } from "@/hooks/useCourseProgress";
 
-function Router() {
+function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/day/:dayId" component={Day} />
+      <Route path="/day/:dayId">
+        {(params) => <Day isAuthenticated={isAuthenticated} />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -76,7 +78,7 @@ function AppContent() {
               </div>
             </header>
             <main className="flex-1 overflow-auto">
-              <Router />
+              <Router isAuthenticated={isAuthenticated} />
             </main>
           </div>
         </div>
@@ -97,7 +99,7 @@ function AppContent() {
         </div>
       </header>
       <main>
-        <Router />
+        <Router isAuthenticated={isAuthenticated} />
       </main>
     </div>
   );
