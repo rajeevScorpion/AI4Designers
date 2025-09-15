@@ -77,9 +77,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Get expected sections for validation
+      const expectedSections = courseData[dayId];
+      const validSectionIds = expectedSections ? expectedSections.map(s => s.id) : [];
+      
       // Update completed sections/slides
-      const completedSections = progress.completedSections || [];
-      const completedSlides = progress.completedSlides || [];
+      const completedSections = [...(progress.completedSections || [])];
+      const completedSlides = [...(progress.completedSlides || [])];
+      
+      // Validate that the slideId is a valid section for this day
+      if (!validSectionIds.includes(slideId)) {
+        return res.status(400).json({ 
+          message: `Invalid section ID '${slideId}' for day ${dayId}`,
+          validSections: validSectionIds
+        });
+      }
       
       if (completed && !completedSections.includes(slideId)) {
         completedSections.push(slideId);
@@ -120,11 +132,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Get expected sections for validation
+      const expectedSections = courseData[dayId];
+      const validSectionIds = expectedSections ? expectedSections.map(s => s.id) : [];
+      
       const quizScores = { ...progress.quizScores, [quizId]: score };
       const completedSections = [...(progress.completedSections || [])];
       
-      if (!completedSections.includes(quizId)) {
+      // Validate that the quizId is a valid section for this day
+      if (validSectionIds.includes(quizId) && !completedSections.includes(quizId)) {
         completedSections.push(quizId);
+      } else if (!validSectionIds.includes(quizId)) {
+        console.warn(`Quiz ID '${quizId}' is not a valid section for day ${dayId}`);
       }
 
       const updatedProgress = await storage.updateUserProgress(userId, dayId, {
@@ -183,7 +202,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const badge = await storage.createUserBadge(validation.data);
+      const badge = await storage.createUserBadge({
+        ...validation.data,
+        badgeData: validation.data.badgeData as {
+          dayId?: number;
+          title: string;
+          description: string;
+          iconName: string;
+          color: string;
+        }
+      });
       res.json(badge);
     } catch (error) {
       console.error("Error creating badge:", error);
@@ -352,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId,
           badgeType: 'day_complete',
           badgeData: {
-            dayId: dayId,
+            dayId: dayId as number,
             title: `Day ${dayId} Complete`,
             description: `Completed all activities for Day ${dayId}`,
             iconName: 'check-circle',

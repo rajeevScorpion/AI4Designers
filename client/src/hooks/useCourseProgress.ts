@@ -30,14 +30,33 @@ export function useCourseProgress() {
       const dayProgress = allProgress.find((p: any) => p.dayId === dayId)
       const completedSections = dayProgress?.completedSections || []
       const totalSections = getSectionCountForDay(dayId)
-      const progress = totalSections > 0 ? (completedSections.length / totalSections) * 100 : 0
+      
+      // Filter out any invalid or duplicate section IDs
+      const validSectionIds = getDaySections(dayId, []).map(s => s.id)
+      const uniqueCompletedSections = Array.from(new Set(completedSections)).filter(sectionId => 
+        validSectionIds.includes(sectionId)
+      )
+      
+      // Calculate progress based on unique, valid sections only
+      const validCompletedCount = uniqueCompletedSections.length
+      const progress = totalSections > 0 ? (validCompletedCount / totalSections) * 100 : 0
+      
+      // Debug logging for progress issues
+      if (completedSections.length !== uniqueCompletedSections.length) {
+        console.warn(`Day ${dayId} has invalid or duplicate sections:`, {
+          original: completedSections,
+          filtered: uniqueCompletedSections,
+          validSectionIds,
+          progress: Math.round(progress)
+        })
+      }
       
       return {
         id: dayId,
         title: getDayTitle(dayId),
-        sections: getDaySections(dayId, completedSections),
+        sections: getDaySections(dayId, uniqueCompletedSections),
         isCompleted: dayProgress?.isCompleted || false,
-        progress: Math.round(progress)
+        progress: Math.min(Math.round(progress), 100) // Cap at 100% as safety measure
       }
     }),
     currentDay: getCurrentDay(allProgress)
