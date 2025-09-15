@@ -32,12 +32,6 @@ Preferred communication style: Simple, everyday language.
 - **ORM**: Drizzle ORM with PostgreSQL dialect for type-safe database operations
 - **Migrations**: Drizzle-kit for database schema management
 
-### Authentication and Authorization
-- **Provider**: Replit OIDC for seamless platform integration
-- **Session Storage**: PostgreSQL-backed sessions with configurable TTL
-- **User Management**: Automatic user creation/updates with profile data syncing
-- **Route Protection**: Middleware-based authentication checks for protected endpoints
-
 ### Course Content Management
 - **Structure**: Day-based curriculum with sections, activities, quizzes, and videos
 - **Content Types**: Support for HTML content, interactive activities, multi-choice quizzes, and video embeds

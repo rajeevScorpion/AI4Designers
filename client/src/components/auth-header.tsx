@@ -1,14 +1,15 @@
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { LogIn, LogOut, User } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
+import { handleLogout } from "@/lib/authUtils"
 
 export function AuthHeader() {
   const { user, isAuthenticated, isLoading } = useAuth()
@@ -23,8 +24,8 @@ export function AuthHeader() {
 
   if (!isAuthenticated) {
     return (
-      <Button 
-        onClick={() => window.location.href = '/api/login'}
+      <Button
+        onClick={() => window.location.href = '/signin'}
         data-testid="button-login"
       >
         <LogIn className="w-4 h-4 mr-2" />
@@ -65,11 +66,9 @@ export function AuthHeader() {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <a href="/api/logout" className="w-full" data-testid="link-logout">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-          </a>
+        <DropdownMenuItem onClick={handleLogout} className="w-full cursor-pointer" data-testid="link-logout">
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

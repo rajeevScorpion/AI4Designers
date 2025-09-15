@@ -10,6 +10,7 @@ import { CourseSidebar } from "@/components/course-sidebar";
 import { AuthHeader } from "@/components/auth-header";
 import Home from "@/pages/home";
 import Day from "@/pages/day";
+import SignIn from "@/pages/signin";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourseProgress } from "@/hooks/useCourseProgress";
@@ -18,6 +19,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/signin" component={SignIn} />
       <Route path="/day/:dayId">
         {(params) => <Day isAuthenticated={isAuthenticated} />}
       </Route>

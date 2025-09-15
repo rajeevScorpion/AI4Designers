@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(set:*)",
+      "Bash(tsx test:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm run check:*)",
+      "mcp__supabase__list_projects",
+      "Bash(curl:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(node:*)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash($env:DATABASE_URL=\"postgresql://postgres.bhoywggxxpiaphqipkwe.supabase.co:6543/postgres\")",
+      "mcp__supabase__execute_sql",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_2634a10842324267f5f0d486effaf6b8b5a62010 node:*)",
+      "Bash(find:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(npx vite:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
