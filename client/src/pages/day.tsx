@@ -10,6 +10,7 @@ import { QuizSection } from "@/components/quiz-section"
 import { ArrowLeft, ArrowRight, CheckCircle, LogIn } from "lucide-react"
 import { useLocation } from "wouter"
 import type { CourseDay, CourseSection } from "@shared/schema"
+import { courseData } from "@shared/courseData"
 
 interface DayProps {
   isAuthenticated?: boolean;
@@ -24,16 +25,16 @@ export default function Day({ isAuthenticated = false }: DayProps) {
   const [completedSections, setCompletedSections] = useState<string[]>([])
   const [quizScores, setQuizScores] = useState<Record<string, number>>({})
 
-  // Mock data for the current day
-  const mockDayData: CourseDay = {
+  // Use real course data instead of mock data
+  const dayData: CourseDay = {
     id: dayId,
     title: getDayTitle(dayId),
     description: getDayDescription(dayId),
     estimatedTime: getDayTime(dayId),
-    sections: getDaySections(dayId)
+    sections: courseData[dayId] || []
   }
 
-  const progress = (completedSections.length / mockDayData.sections.length) * 100
+  const progress = (completedSections.length / dayData.sections.length) * 100
 
   const handleSectionComplete = (sectionId: string) => {
     console.log(`Section ${sectionId} completed`)
@@ -62,7 +63,7 @@ export default function Day({ isAuthenticated = false }: DayProps) {
     }
   }
 
-  const canProceed = completedSections.length === mockDayData.sections.length
+  const canProceed = completedSections.length === dayData.sections.length
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,15 +86,15 @@ export default function Day({ isAuthenticated = false }: DayProps) {
           <div className="space-y-4">
             <div>
               <h1 className="text-3xl font-bold mb-2" data-testid={`text-day-${dayId}-title`}>
-                {mockDayData.title}
+                {dayData.title}
               </h1>
-              <p className="text-muted-foreground">{mockDayData.description}</p>
+              <p className="text-muted-foreground">{dayData.description}</p>
             </div>
             
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>⏱️ {mockDayData.estimatedTime}</span>
-                <span>📚 {mockDayData.sections.length} sections</span>
+                <span>⏱️ {dayData.estimatedTime}</span>
+                <span>📚 {dayData.sections.length} sections</span>
                 <span>✅ {completedSections.length} completed</span>
               </div>
               
@@ -136,7 +137,7 @@ export default function Day({ isAuthenticated = false }: DayProps) {
       {/* Course Content */}
       <div className="max-w-4xl mx-auto p-6">
         <div className="space-y-8">
-          {mockDayData.sections.map((section, index) => {
+          {dayData.sections.map((section: CourseSection, index: number) => {
             const isCompleted = completedSections.includes(section.id)
             
             return (
@@ -210,7 +211,7 @@ export default function Day({ isAuthenticated = false }: DayProps) {
               </Badge>
             ) : (
               <Badge variant="outline">
-                {completedSections.length} of {mockDayData.sections.length} sections complete
+                {completedSections.length} of {dayData.sections.length} sections complete
               </Badge>
             )}
           </div>
