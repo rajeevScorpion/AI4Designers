@@ -145,7 +145,8 @@ export interface CourseSection {
   title: string;
   content?: string;
   videoUrl?: string;
-  videoDescription?: string;
+  duration?: string;
+  description?: string;
   activity?: Activity;
   quiz?: Quiz;
 }

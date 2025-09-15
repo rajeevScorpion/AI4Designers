@@ -8,6 +8,7 @@ import {
   createBadgeSchema,
   createCertificateSchema 
 } from "@shared/schema";
+import { courseData } from "@shared/courseData";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -211,19 +212,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user has completed all 5 days
-      const allProgress = await storage.getAllUserProgress(userId);
-      const completedDays = allProgress.filter(p => p.isCompleted).length;
-      
-      if (completedDays < 5) {
+      // Check if certificate already exists to prevent duplicates
+      const existingCertificate = await storage.hasCertificate(userId, "ai-fundamentals-5day");
+      if (existingCertificate) {
+        const certificates = await storage.getUserCertificates(userId);
         return res.status(400).json({ 
-          message: "Course not complete", 
-          completedDays,
-          requiredDays: 5 
+          message: "Certificate already issued",
+          certificate: certificates[0] // Return the existing certificate
         });
       }
 
-      // Calculate overall score
+      // Check if user has completed all 5 days specifically (days 1-5)
+      const allProgress = await storage.getAllUserProgress(userId);
+      
+      // Create a map of progress by dayId for easy lookup
+      const progressByDay = new Map(allProgress.map(p => [p.dayId, p]));
+      
+      // Check each day (1-5) specifically
+      const incompletedays: number[] = [];
+      for (let dayId = 1; dayId <= 5; dayId++) {
+        const dayProgress = progressByDay.get(dayId);
+        if (!dayProgress || !dayProgress.isCompleted) {
+          incompletedays.push(dayId);
+        }
+      }
+      
+      if (incompletedays.length > 0) {
+        return res.status(400).json({ 
+          message: `Course not complete. Missing days: ${incompletedays.join(', ')}`, 
+          completedDays: 5 - incompletedays.length,
+          requiredDays: 5,
+          incompleteDays: incompletedays
+        });
+      }
+
+      // Validate that each completed day actually has the expected sections completed
+      for (let dayId = 1; dayId <= 5; dayId++) {
+        const dayProgress = progressByDay.get(dayId);
+        const expectedSections = courseData[dayId];
+        
+        if (expectedSections) {
+          const expectedSectionIds = expectedSections.map(section => section.id);
+          const completedSections = dayProgress?.completedSections || [];
+          const allSectionsCompleted = expectedSectionIds.every(sectionId => 
+            completedSections.includes(sectionId)
+          );
+          
+          if (!allSectionsCompleted) {
+            const missingSections = expectedSectionIds.filter(sectionId => 
+              !completedSections.includes(sectionId)
+            );
+            return res.status(400).json({
+              message: `Day ${dayId} marked as complete but missing sections: ${missingSections.join(', ')}`,
+              dayId,
+              missingSections
+            });
+          }
+        }
+      }
+
+      // Calculate overall score from completed quizzes
       const totalQuizzes = allProgress.reduce((acc, p) => 
         acc + Object.keys(p.quizScores || {}).length, 0
       );
@@ -232,6 +280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       const overallScore = totalQuizzes > 0 ? Math.round(totalScore / totalQuizzes) : 0;
 
+      // All validations passed, create the certificate
       const certificate = await storage.createUserCertificate({
         userId,
         courseId: "ai-fundamentals-5day",
@@ -257,23 +306,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const dayId = parseInt(req.params.dayId);
 
+      // Get expected sections for this day
+      const expectedSections = courseData[dayId];
+      if (!expectedSections) {
+        return res.status(400).json({ message: "Invalid day ID" });
+      }
+
+      // Get current progress for this day
+      let progress = await storage.getUserProgress(userId, dayId);
+      if (!progress) {
+        return res.status(400).json({ 
+          message: "No progress found for this day. Please complete some sections first." 
+        });
+      }
+
+      // Check if all sections are completed
+      const completedSections = progress.completedSections || [];
+      const expectedSectionIds = expectedSections.map(section => section.id);
+      const allSectionsCompleted = expectedSectionIds.every(sectionId => 
+        completedSections.includes(sectionId)
+      );
+
+      if (!allSectionsCompleted) {
+        const missingSections = expectedSectionIds.filter(sectionId => 
+          !completedSections.includes(sectionId)
+        );
+        return res.status(400).json({ 
+          message: `Day cannot be completed. Missing sections: ${missingSections.join(', ')}`,
+          completedSections: completedSections.length,
+          totalSections: expectedSectionIds.length,
+          missingSections
+        });
+      }
+
+      // All sections are completed, mark day as complete
       const updatedProgress = await storage.updateUserProgress(userId, dayId, {
         isCompleted: true,
         completedAt: new Date(),
       });
 
-      // Award day completion badge
-      await storage.createUserBadge({
-        userId,
-        badgeType: 'day_complete',
-        badgeData: {
-          dayId: dayId,
-          title: `Day ${dayId} Complete`,
-          description: `Completed all activities for Day ${dayId}`,
-          iconName: 'check-circle',
-          color: 'green',
-        },
-      });
+      // Award day completion badge (check if already exists to avoid duplicates)
+      const hasBadge = await storage.hasBadge(userId, 'day_complete');
+      if (!hasBadge) {
+        await storage.createUserBadge({
+          userId,
+          badgeType: 'day_complete',
+          badgeData: {
+            dayId: dayId,
+            title: `Day ${dayId} Complete`,
+            description: `Completed all activities for Day ${dayId}`,
+            iconName: 'check-circle',
+            color: 'green',
+          },
+        });
+      }
 
       res.json(updatedProgress);
     } catch (error) {

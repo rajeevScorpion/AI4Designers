@@ -258,7 +258,7 @@ function getDaySections(dayId: number): CourseSection[] {
         type: "video",
         title: "AI Revolution in Design",
         videoUrl: "https://www.youtube.com/watch?v=example",
-        videoDescription: "Watch how AI is transforming the creative industry and what it means for designers."
+        description: "Watch how AI is transforming the creative industry and what it means for designers."
       },
       {
         id: "intro-quiz-1",
