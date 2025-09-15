@@ -92,8 +92,8 @@ export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 
-                {/* Show sections for current day */}
-                {day.id === currentDay && day.sections.map((section) => (
+                {/* Show sections for all days */}
+                {day.sections.map((section) => (
                   <SidebarMenuItem key={section.id}>
                     <SidebarMenuButton 
                       asChild

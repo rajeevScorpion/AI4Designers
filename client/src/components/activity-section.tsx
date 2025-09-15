@@ -6,14 +6,15 @@ import type { Activity } from "@shared/schema"
 
 interface ActivitySectionProps {
   activity: Activity
+  sectionId: string
   isCompleted: boolean
-  onMarkComplete: (activityId: string) => void
+  onMarkComplete: (sectionId: string) => void
 }
 
-export function ActivitySection({ activity, isCompleted, onMarkComplete }: ActivitySectionProps) {
+export function ActivitySection({ activity, sectionId, isCompleted, onMarkComplete }: ActivitySectionProps) {
   const handleMarkComplete = () => {
-    console.log(`Marking activity ${activity.id} as complete`)
-    onMarkComplete(activity.id)
+    console.log(`Marking section ${sectionId} as complete`)
+    onMarkComplete(sectionId)
   }
 
   return (

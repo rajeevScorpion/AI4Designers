@@ -141,7 +141,7 @@ export default function Day({ isAuthenticated = false }: DayProps) {
             const isCompleted = completedSections.includes(section.id)
             
             return (
-              <div key={section.id} className="space-y-4">
+              <div key={section.id} id={section.id} className="space-y-4">
                 {/* Section Header */}
                 <div className="flex items-center gap-3">
                   <Badge variant="outline" className="text-xs">
@@ -173,6 +173,7 @@ export default function Day({ isAuthenticated = false }: DayProps) {
                 {section.type === 'activity' && section.activity && (
                   <ActivitySection
                     activity={section.activity}
+                    sectionId={section.id}
                     isCompleted={isCompleted}
                     onMarkComplete={handleSectionComplete}
                   />
