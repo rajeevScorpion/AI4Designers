@@ -7,10 +7,12 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CourseSidebar } from "@/components/course-sidebar";
+import { AuthHeader } from "@/components/auth-header";
 import Home from "@/pages/home";
 import Day from "@/pages/day";
 import NotFound from "@/pages/not-found";
-import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useCourseProgress } from "@/hooks/useCourseProgress";
 
 function Router() {
   return (
@@ -22,90 +24,91 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const { sidebarData, isLoading: progressLoading } = useCourseProgress()
+
+  // Show loading state while fetching auth data
+  if (authLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Authenticated users get full UI with sidebar and progress tracking
+  if (isAuthenticated) {
+    // Custom sidebar width for the course
+    const style = {
+      "--sidebar-width": "20rem",
+      "--sidebar-width-icon": "4rem",
+    };
+
+    // Show loading state while fetching progress data for authenticated users
+    if (progressLoading) {
+      return (
+        <div className="flex h-screen w-full items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-muted-foreground">Loading course data...</p>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <SidebarProvider style={style as React.CSSProperties}>
+        <div className="flex h-screen w-full">
+          <CourseSidebar 
+            days={sidebarData.days} 
+            currentDay={sidebarData.currentDay} 
+          />
+          <div className="flex flex-col flex-1">
+            <header className="flex items-center justify-between p-4 border-b bg-background">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <div className="flex items-center gap-4">
+                <ThemeToggle />
+                <AuthHeader />
+              </div>
+            </header>
+            <main className="flex-1 overflow-auto">
+              <Router />
+            </main>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
+
+  // Unauthenticated users get simplified UI without sidebar
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="flex items-center justify-between p-4 border-b bg-background">
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">AI Fundamentals Course</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <AuthHeader />
+        </div>
+      </header>
+      <main>
+        <Router />
+      </main>
+    </div>
+  );
+}
+
 function App() {
-  // todo: remove mock functionality - replace with real progress data
-  const [mockSidebarData] = useState({
-    days: [
-      {
-        id: 1,
-        title: "Introduction to AI",
-        sections: [
-          { id: "intro-content-1", title: "What is AI?", type: "content" as const, isCompleted: false },
-          { id: "intro-video-1", title: "AI in Design", type: "video" as const, isCompleted: false },
-          { id: "intro-quiz-1", title: "Knowledge Check", type: "quiz" as const, isCompleted: false }
-        ],
-        isCompleted: false,
-        progress: 0
-      },
-      {
-        id: 2,
-        title: "AI Tools for Designers",
-        sections: [
-          { id: "tools-content-1", title: "Popular Platforms", type: "content" as const, isCompleted: false },
-          { id: "tools-activity-1", title: "Hands-on Practice", type: "activity" as const, isCompleted: false }
-        ],
-        isCompleted: false,
-        progress: 0
-      },
-      {
-        id: 3,
-        title: "Generative AI",
-        sections: [
-          { id: "gen-content-1", title: "Image Generation", type: "content" as const, isCompleted: false },
-          { id: "gen-activity-1", title: "Create AI Art", type: "activity" as const, isCompleted: false }
-        ],
-        isCompleted: false,
-        progress: 0
-      },
-      {
-        id: 4,
-        title: "AI Workflows",
-        sections: [
-          { id: "workflow-content-1", title: "Integration Strategies", type: "content" as const, isCompleted: false }
-        ],
-        isCompleted: false,
-        progress: 0
-      },
-      {
-        id: 5,
-        title: "Future of AI",
-        sections: [
-          { id: "future-content-1", title: "Emerging Trends", type: "content" as const, isCompleted: false }
-        ],
-        isCompleted: false,
-        progress: 0
-      }
-    ],
-    currentDay: 1
-  });
-
-  // Custom sidebar width for the course
-  const style = {
-    "--sidebar-width": "20rem",
-    "--sidebar-width-icon": "4rem",
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
-          <SidebarProvider style={style as React.CSSProperties}>
-            <div className="flex h-screen w-full">
-              <CourseSidebar 
-                days={mockSidebarData.days} 
-                currentDay={mockSidebarData.currentDay} 
-              />
-              <div className="flex flex-col flex-1">
-                <header className="flex items-center justify-between p-4 border-b bg-background">
-                  <SidebarTrigger data-testid="button-sidebar-toggle" />
-                  <ThemeToggle />
-                </header>
-                <main className="flex-1 overflow-auto">
-                  <Router />
-                </main>
-              </div>
-            </div>
-          </SidebarProvider>
+          <AppContent />
           <Toaster />
         </TooltipProvider>
       </ThemeProvider>

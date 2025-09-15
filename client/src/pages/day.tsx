@@ -7,13 +7,15 @@ import { Progress } from "@/components/ui/progress"
 import { SectionContent } from "@/components/section-content"
 import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
-import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle, LogIn } from "lucide-react"
 import { useLocation } from "wouter"
+import { useAuth } from "@/hooks/useAuth"
 import type { CourseDay, CourseSection } from "@shared/schema"
 
 export default function Day() {
   const [, params] = useRoute("/day/:dayId")
   const [, navigate] = useLocation()
+  const { isAuthenticated } = useAuth()
   const dayId = parseInt(params?.dayId || "1")
   
   // todo: remove mock functionality - replace with real data from API
@@ -104,6 +106,30 @@ export default function Day() {
           </div>
         </div>
       </div>
+
+      {/* Authentication Prompt for Unauthenticated Users */}
+      {!isAuthenticated && (
+        <div className="bg-primary/10 border-primary/20 border-b">
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <LogIn className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium text-sm">Sign in to save your progress</p>
+                  <p className="text-xs text-muted-foreground">Your progress will be lost when you close this tab</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => window.location.href = '/api/login'}
+                size="sm"
+                data-testid="button-sign-in-prompt"
+              >
+                Sign In
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Course Content */}
       <div className="max-w-4xl mx-auto p-6">
