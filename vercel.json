@@ -1,16 +1,4 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/public",
-  "functions": {
-    "api/server/index.ts": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/server/index.ts"
-    }
-  ]
+  "outputDirectory": "dist"
 }
