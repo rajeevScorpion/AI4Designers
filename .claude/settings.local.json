@@ -27,7 +27,14 @@
       "mcp__playwright__browser_snapshot",
       "mcp__playwright__browser_press_key",
       "Bash(mcp__supabase__list_projects:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "mcp__github__get_me",
+      "mcp__github__create_repository",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "mcp__vercel__deploy_to_vercel",
+      "Bash(vercel:*)"
     ],
     "deny": [],
     "ask": []
