@@ -100,10 +100,27 @@ export const courseData: Record<number, CourseSection[]> = {
     {
       id: "day1-video",
       type: "video",
-      title: "AI in Creative Industries",
-      videoUrl: "https://www.youtube.com/embed/t4kyRyKyOpo",
-      duration: "8 minutes",
-      description: "An overview of how AI is being used across different creative industries, from graphic design to filmmaking."
+      title: "Essential AI Concepts Explained",
+      videos: [
+        {
+          title: "What Is Artificial Intelligence?",
+          videoUrl: "https://www.youtube.com/embed/2ePf9rue1Ao",
+          duration: "6 minutes",
+          description: "Crash Course's engaging introduction to AI fundamentals, perfect for beginners"
+        },
+        {
+          title: "How Does AI Actually Learn?",
+          videoUrl: "https://www.youtube.com/embed/OeU5m6vRyCk",
+          duration: "5 minutes",
+          description: "TED-Ed's beautifully animated explanation of machine learning concepts"
+        },
+        {
+          title: "The History and Future of AI",
+          videoUrl: "https://www.youtube.com/embed/UwsrzCVZAb8",
+          duration: "8 minutes",
+          description: "A comprehensive overview of AI's evolution from the 1950s to today"
+        }
+      ]
     },
     {
       id: "day1-activity",
@@ -310,10 +327,27 @@ export const courseData: Record<number, CourseSection[]> = {
     {
       id: "day2-video",
       type: "video", 
-      title: "How Neural Networks Learn",
-      videoUrl: "https://www.youtube.com/embed/aircAruvnKk",
-      duration: "19 minutes",
-      description: "An excellent visual explanation of how neural networks work, which forms the foundation of most modern AI systems."
+      title: "Understanding Neural Networks & Machine Learning",
+      videos: [
+        {
+          title: "But What Is a Neural Network?",
+          videoUrl: "https://www.youtube.com/embed/aircAruvnKk",
+          duration: "19 minutes",
+          description: "3Blue1Brown's visually stunning explanation of neural networks"
+        },
+        {
+          title: "Machine Learning Explained",
+          videoUrl: "https://www.youtube.com/embed/ukzFI9rgwfU",
+          duration: "11 minutes",
+          description: "Google's simple introduction to different types of machine learning"
+        },
+        {
+          title: "Deep Learning In 5 Minutes",
+          videoUrl: "https://www.youtube.com/embed/6M5VXKLf4D4",
+          duration: "5 minutes",
+          description: "Quick overview of deep learning concepts and applications"
+        }
+      ]
     },
     {
       id: "day2-activity",
@@ -525,10 +559,27 @@ export const courseData: Record<number, CourseSection[]> = {
     {
       id: "day3-video",
       type: "video",
-      title: "AI Tools in Action: Real Design Process",
-      videoUrl: "https://www.youtube.com/embed/f9_sLgqbMvs", 
-      duration: "15 minutes",
-      description: "Watch professional designers use AI tools in their actual workflow, from initial concept to final design."
+      title: "AI Tools for Creative Design",
+      videos: [
+        {
+          title: "AI-Powered Design with Figma & ChatGPT",
+          videoUrl: "https://www.youtube.com/embed/v2aX3oCuYes",
+          duration: "12 minutes",
+          description: "Real-world workflow combining ChatGPT, Midjourney, and Figma"
+        },
+        {
+          title: "Getting Started with Midjourney",
+          videoUrl: "https://www.youtube.com/embed/Asg1e_IYzR8",
+          duration: "15 minutes",
+          description: "Complete beginner's guide to creating AI art with Midjourney"
+        },
+        {
+          title: "Adobe Firefly AI Tutorial",
+          videoUrl: "https://www.youtube.com/embed/WLmzakS2JJg",
+          duration: "10 minutes",
+          description: "Learn Adobe's AI tools for creative professionals"
+        }
+      ]
     },
     {
       id: "day3-activity",
@@ -757,10 +808,27 @@ export const courseData: Record<number, CourseSection[]> = {
     {
       id: "day4-video",
       type: "video",
-      title: "Ethics in AI Design: Real-World Cases",
-      videoUrl: "https://www.youtube.com/embed/7Qz6Lx4aTBU",
-      duration: "12 minutes", 
-      description: "Explore real-world examples of ethical dilemmas in AI-powered design and how professionals are addressing them."
+      title: "AI Ethics and Responsible Design",
+      videos: [
+        {
+          title: "Algorithmic Bias and Fairness",
+          videoUrl: "https://www.youtube.com/embed/gV0_raKR2UE",
+          duration: "11 minutes",
+          description: "CrashCourse explains how bias occurs in AI systems"
+        },
+        {
+          title: "The Ethics of AI",
+          videoUrl: "https://www.youtube.com/embed/EBK-a94IFHY",
+          duration: "7 minutes",
+          description: "Exploring moral implications of artificial intelligence"
+        },
+        {
+          title: "Responsible AI Principles",
+          videoUrl: "https://www.youtube.com/embed/LMU1aAC4BuU",
+          duration: "9 minutes",
+          description: "Microsoft's guide to building ethical AI systems"
+        }
+      ]
     },
     {
       id: "day4-activity",
@@ -1063,10 +1131,27 @@ export const courseData: Record<number, CourseSection[]> = {
     {
       id: "day5-video",
       type: "video",
-      title: "Future of Creative Work with AI",
-      videoUrl: "https://www.youtube.com/embed/0gNauGdOkro",
-      duration: "18 minutes",
-      description: "Industry leaders discuss how AI will transform creative work and what designers need to know to stay ahead."
+      title: "The Future of AI and Design",
+      videos: [
+        {
+          title: "AI - Humanity's Final Invention?",
+          videoUrl: "https://www.youtube.com/embed/fa8k8IQ1_X0",
+          duration: "19 minutes",
+          description: "Kurzgesagt explores artificial superintelligence and its implications"
+        },
+        {
+          title: "Careers in AI and Machine Learning",
+          videoUrl: "https://www.youtube.com/embed/5dZ_lvDgevk",
+          duration: "8 minutes",
+          description: "Overview of career paths in the AI industry"
+        },
+        {
+          title: "The Next Decade of AI",
+          videoUrl: "https://www.youtube.com/embed/XFA1MfTiXN0",
+          duration: "14 minutes",
+          description: "Expert predictions on AI's evolution through 2035"
+        }
+      ]
     },
     {
       id: "day5-activity",

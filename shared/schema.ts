@@ -144,6 +144,13 @@ export interface FlipCardData {
   description: string;
 }
 
+export interface VideoResource {
+  title: string;
+  videoUrl: string;
+  duration?: string;
+  description?: string;
+}
+
 export interface CourseSection {
   id: string;
   type: 'content' | 'activity' | 'quiz' | 'video';
@@ -152,8 +159,9 @@ export interface CourseSection {
   contentIntro?: string; // Content before flip cards
   contentOutro?: string; // Content after flip cards
   flipCards?: FlipCardData[]; // Array of flip cards for the section
-  videoUrl?: string;
+  videoUrl?: string; // Single video (legacy support)
   videoDescription?: string;
+  videos?: VideoResource[]; // Multiple videos support
   duration?: string;
   description?: string;
   activity?: Activity;

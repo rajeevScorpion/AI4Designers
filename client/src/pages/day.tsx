@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress"
 import { SectionContent } from "@/components/section-content"
 import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
+import { TabbedVideoSection } from "@/components/tabbed-video-section"
 import { ArrowLeft, ArrowRight, CheckCircle, LogIn } from "lucide-react"
 import { useLocation } from "wouter"
 import type { CourseDay, CourseSection } from "@shared/schema"
@@ -163,11 +164,20 @@ export default function Day({ isAuthenticated = false }: DayProps) {
                 )}
 
                 {section.type === 'video' && (
-                  <SectionContent
-                    section={section}
-                    isCompleted={isCompleted}
-                    onMarkComplete={handleSectionComplete}
-                  />
+                  section.videos && section.videos.length > 0 ? (
+                    <TabbedVideoSection
+                      videos={section.videos}
+                      sectionId={section.id}
+                      isCompleted={isCompleted}
+                      onMarkComplete={handleSectionComplete}
+                    />
+                  ) : (
+                    <SectionContent
+                      section={section}
+                      isCompleted={isCompleted}
+                      onMarkComplete={handleSectionComplete}
+                    />
+                  )
                 )}
 
                 {section.type === 'activity' && section.activity && (
