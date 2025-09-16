@@ -59,7 +59,7 @@ export default function Certificate() {
           "Authorization": `Bearer ${localStorage.getItem("supabase_token")}`
         },
         body: JSON.stringify({
-          fullName: user?.fullName,
+          fullName: user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User',
           courseId: "ai-fundamentals-designers"
         })
       })

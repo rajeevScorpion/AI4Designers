@@ -48,7 +48,7 @@ export default function Profile() {
         fullName: user.fullName || "",
         email: user.email || "",
         phone: user.phone || "",
-        profession: user.profession || "student",
+        profession: (user.profession as "student" | "working") || "student",
         courseType: user.courseType || "",
         stream: user.stream || "",
         fieldOfWork: user.fieldOfWork || "",

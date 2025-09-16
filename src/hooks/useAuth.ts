@@ -6,6 +6,15 @@ export interface User {
   firstName?: string;
   lastName?: string;
   profileImageUrl?: string;
+  fullName?: string;
+  phone?: string;
+  profession?: string;
+  courseType?: string;
+  stream?: string;
+  fieldOfWork?: string;
+  designation?: string;
+  organization?: string;
+  dateOfBirth?: string;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -113,6 +113,7 @@ export function SlideViewer({
         {currentSection?.type === 'activity' && currentSection.activity && (
           <ActivitySection
             activity={currentSection.activity}
+            sectionId={currentSection.id}
             isCompleted={isCurrentSlideCompleted}
             onMarkComplete={onSectionComplete}
           />

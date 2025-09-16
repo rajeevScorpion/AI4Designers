@@ -108,8 +108,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         progress = await db.createUserProgress({
           user_id: userId,
           day_id: dayId,
-          completedSections: [],
-          completedSlides: [],
+          completed_sections: [],
+          completed_slides: [],
           quiz_scores: {},
         });
       }
@@ -240,7 +240,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const badge = await db.createUserBadge({
-        ...validation.data,
+        user_id: validation.data.userId,
+        badge_type: validation.data.badgeType,
         badge_data: validation.data.badgeData as {
           dayId?: number;
           title: string;
@@ -340,9 +341,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalQuizzes = allProgress.reduce((acc, p) =>
         acc + Object.keys(p.quiz_scores || {}).length, 0
       );
-      const totalScore = allProgress.reduce((acc, p) =>
-        acc + Object.values(p.quiz_scores || {}).reduce((sum, score) => sum + score, 0), 0
-      );
+      const totalScore = allProgress.reduce((acc, p) => {
+        const scores = Object.values(p.quiz_scores || {}) as number[];
+        return acc + scores.reduce((sum: number, score: number) => sum + score, 0);
+      }, 0);
       const overallScore = totalQuizzes > 0 ? Math.round(totalScore / totalQuizzes) : 0;
 
       // All validations passed, create the certificate
@@ -352,7 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         certificate_data: {
           userName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || 'Student',
           courseName: "AI Fundamentals for Designers - 5-Day Crash Course",
-          completionDate: new Date().toLocaleDateString(),
+          completionDate: new Date().toISOString().split('T')[0],
           overallScore,
           totalDays: 5,
         },
@@ -407,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // All sections are completed, mark day as complete
       const updatedProgress = await db.updateUserProgress(userId, dayId, {
         is_completed: true,
-        completed_at: new Date(),
+        completed_at: new Date().toISOString(),
       });
 
       // Award day completion badge (check if already exists to avoid duplicates)
