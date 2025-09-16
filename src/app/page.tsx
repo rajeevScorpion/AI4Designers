@@ -9,6 +9,7 @@ import { CheckCircle, Circle, Clock, ArrowRight, BookOpen, Users, Award } from "
 import { useRouter } from "next/navigation"
 import { useSupabase } from "@/components/auth-provider"
 import { useQuery } from '@tanstack/react-query'
+import { CoursePreviewModal } from "@/components/course-preview-modal"
 
 interface Day {
   id: number
@@ -34,6 +35,8 @@ export default function Home() {
   const router = useRouter()
   const { supabase } = useSupabase()
   const [userId, setUserId] = useState<string | null>(null)
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
   // Get user ID from Supabase auth
   supabase.auth.getUser().then(({ data: { user } }) => {
@@ -103,12 +106,191 @@ export default function Home() {
     }
   ]
 
+  // Day data for preview modal
+  const dayPreviewData = [
+    {
+      id: 1,
+      title: "Introduction to AI & Design",
+      description: "Explore the fundamentals of AI and how it's transforming the design industry. Learn key concepts and terminology.",
+      duration: "30 min",
+      sections: [
+        {
+          type: "intro",
+          title: "Course Introduction",
+          description: "Welcome to AI Fundamentals for Designers - overview of what you'll learn"
+        },
+        {
+          type: "content",
+          title: "What is AI?",
+          description: "Understanding artificial intelligence, machine learning, and their relevance to design"
+        },
+        {
+          type: "video",
+          title: "AI in Design Industry",
+          description: "Watch how AI is transforming creative workflows and design processes"
+        },
+        {
+          type: "activity",
+          title: "AI Tool Exploration",
+          description: "Hands-on activity exploring basic AI tools and their capabilities"
+        },
+        {
+          type: "quiz",
+          title: "Knowledge Check",
+          description: "Test your understanding of AI fundamentals covered in this day"
+        }
+      ]
+    },
+    {
+      id: 2,
+      title: "Understanding AI Tools for Designers",
+      description: "Discover popular AI tools and platforms used by designers today. Get hands-on experience with leading platforms.",
+      duration: "45 min",
+      sections: [
+        {
+          type: "intro",
+          title: "AI Tool Landscape",
+          description: "Overview of AI tools available for designers and their use cases"
+        },
+        {
+          type: "content",
+          title: "Text-based AI Tools",
+          description: "Exploring ChatGPT, Claude, and other language models for design workflows"
+        },
+        {
+          type: "video",
+          title: "AI Tool Demos",
+          description: "Watch demonstrations of popular AI design tools in action"
+        },
+        {
+          type: "activity",
+          title: "Tool Comparison",
+          description: "Compare and evaluate different AI tools for specific design tasks"
+        },
+        {
+          type: "quiz",
+          title: "Tool Selection Quiz",
+          description: "Test your knowledge of selecting the right AI tools for design projects"
+        }
+      ]
+    },
+    {
+      id: 3,
+      title: "Generative AI for Visual Design",
+      description: "Learn how to use AI for creating images, graphics, and visual content. Master prompt engineering techniques.",
+      duration: "60 min",
+      sections: [
+        {
+          type: "intro",
+          title: "Generative AI Overview",
+          description: "Introduction to generative AI and its applications in visual design"
+        },
+        {
+          type: "content",
+          title: "Prompt Engineering",
+          description: "Learn techniques for writing effective prompts for image generation"
+        },
+        {
+          type: "video",
+          title: "Image Generation Workshop",
+          description: "Step-by-step guide to creating AI-generated images and graphics"
+        },
+        {
+          type: "activity",
+          title: "Creative Project",
+          description: "Create a series of AI-generated images for a design project"
+        },
+        {
+          type: "quiz",
+          title: "Generative AI Quiz",
+          description: "Assess your understanding of generative AI concepts and techniques"
+        }
+      ]
+    },
+    {
+      id: 4,
+      title: "AI-Powered Design Workflows",
+      description: "Integrate AI into your design process for enhanced productivity. Build efficient AI-assisted workflows.",
+      duration: "50 min",
+      sections: [
+        {
+          type: "intro",
+          title: "Workflow Integration",
+          description: "Understanding how to integrate AI into existing design workflows"
+        },
+        {
+          type: "content",
+          title: "AI in Design Process",
+          description: "Mapping AI tools to different stages of the design process"
+        },
+        {
+          type: "video",
+          title: "Workflow Examples",
+          description: "Real-world examples of AI-powered design workflows"
+        },
+        {
+          type: "activity",
+          title: "Workflow Design",
+          description: "Design and document an AI-assisted workflow for a design project"
+        },
+        {
+          type: "quiz",
+          title: "Workflow Quiz",
+          description: "Test your knowledge of AI integration in design workflows"
+        }
+      ]
+    },
+    {
+      id: 5,
+      title: "Future of AI in Design",
+      description: "Explore emerging trends and prepare for the future of AI-assisted design. Ethics and best practices.",
+      duration: "40 min",
+      sections: [
+        {
+          type: "intro",
+          title: "Future Trends",
+          description: "Exploring emerging trends and technologies in AI and design"
+        },
+        {
+          type: "content",
+          title: "Ethics and Best Practices",
+          description: "Understanding ethical considerations and best practices for AI in design"
+        },
+        {
+          type: "video",
+          title: "Industry Perspectives",
+          description: "Insights from industry leaders on the future of AI in design"
+        },
+        {
+          type: "activity",
+          title: "Future Vision",
+          description: "Create a vision board for how AI will shape your design career"
+        },
+        {
+          type: "quiz",
+          title: "Future of AI Quiz",
+          description: "Final assessment covering ethics, trends, and future applications"
+        }
+      ]
+    }
+  ]
+
   const handleDaySelect = (dayId: number) => {
-    router.push(`/day/${dayId}`)
+    if (!userId) {
+      setSelectedDay(dayId)
+      setPreviewModalOpen(true)
+    } else {
+      router.push(`/day/${dayId}`)
+    }
   }
 
   const handleStartCourse = () => {
-    router.push('/day/1')
+    if (!userId) {
+      setSelectedDay(1)
+      setPreviewModalOpen(true)
+    } else {
+      router.push('/day/1')
+    }
   }
 
   return (
@@ -158,7 +340,7 @@ export default function Home() {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>No signup required • Track progress with IP</span>
+                <span>Create a free account to track progress and save your work</span>
               </div>
             </div>
           </div>
@@ -320,6 +502,15 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Course Preview Modal */}
+      {selectedDay && (
+        <CoursePreviewModal
+          open={previewModalOpen}
+          onOpenChange={setPreviewModalOpen}
+          dayData={dayPreviewData.find(day => day.id === selectedDay)!}
+        />
+      )}
     </div>
   )
 }
