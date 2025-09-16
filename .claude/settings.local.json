@@ -48,7 +48,9 @@
       "Bash(powershell:*)",
       "Bash(rm:*)",
       "Bash(npm run)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(cat:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

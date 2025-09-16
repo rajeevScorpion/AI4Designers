@@ -40,14 +40,38 @@ interface User {
 }
 
 async function fetchUserProfile(supabase: any, userId: string): Promise<User | null> {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
 
-  if (error) throw error
-  return data
+    if (error) {
+      // If user doesn't exist in database yet, return minimal user info from auth
+      if (error.code === 'PGRST116') {
+        const { data: { user } } = await supabase.auth.getUser()
+        return user ? {
+          id: user.id,
+          email: user.email,
+          fullName: '',
+          phone: '',
+          profession: 'student',
+          courseType: '',
+          stream: '',
+          fieldOfWork: '',
+          designation: '',
+          organization: '',
+          dateOfBirth: ''
+        } : null
+      }
+      throw error
+    }
+    return data
+  } catch (err) {
+    console.error('Error fetching user profile:', err)
+    throw err
+  }
 }
 
 export default function Profile() {
@@ -79,10 +103,13 @@ export default function Profile() {
   }, [supabase])
 
   // Fetch user profile data
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading, error } = useQuery({
     queryKey: ['user-profile', userId],
     queryFn: () => userId ? fetchUserProfile(supabase, userId) : null,
-    enabled: !!userId
+    enabled: !!userId,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
   // Update form when user data loads
@@ -166,7 +193,26 @@ export default function Profile() {
   if (isLoading || !userId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p>Loading your profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-500 mb-4">Failed to load profile</div>
+          <p className="text-muted-foreground mb-4">
+            {error instanceof Error ? error.message : "Please try refreshing the page"}
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Reload Page
+          </Button>
+        </div>
       </div>
     )
   }
