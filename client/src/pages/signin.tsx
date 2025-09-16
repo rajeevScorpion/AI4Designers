@@ -1,21 +1,31 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, Lock, Eye, EyeOff, Chrome } from "lucide-react"
+import { Mail, Lock, Chrome } from "lucide-react"
 import { useLocation } from "wouter"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useAuth } from "@/hooks/useAuth"
+import { useQueryClient } from "@tanstack/react-query"
 
 export default function SignIn() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [, setLocation] = useLocation()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const queryClient = useQueryClient()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      setLocation('/day/1')
+    }
+  }, [isAuthenticated, authLoading, setLocation])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,7 +47,7 @@ export default function SignIn() {
         throw new Error(data.message || "Sign in failed")
       }
 
-      // Store the token and redirect to home
+      // Store the token and redirect to day 1
       if (data.session?.access_token) {
         localStorage.setItem("supabase_token", data.session.access_token)
         // Also set as cookie for server-side access
@@ -45,9 +55,14 @@ export default function SignIn() {
           `; path=/; max-age=2592000; Secure; SameSite=Lax` :
           `; path=/; max-age=604800; Secure; SameSite=Lax`
         document.cookie = `supabase_token=${data.session.access_token}${cookieOptions}`
-        setLocation("/")
+
+        // Invalidate auth query to refetch user data
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] })
+
+        // Redirect to day 1
+        setLocation("/day/1")
       } else {
-        setLocation("/")
+        setLocation("/day/1")
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
@@ -67,6 +82,30 @@ export default function SignIn() {
     } catch (err) {
       setError("Failed to initiate Google sign in")
     }
+  }
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render sign-in form if already authenticated (will redirect via useEffect)
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Redirecting to course...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -89,7 +128,7 @@ export default function SignIn() {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <Input
                   id="email"
                   type="email"
@@ -105,29 +144,16 @@ export default function SignIn() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
+                  className="pl-10"
                   required
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
               </div>
             </div>
 

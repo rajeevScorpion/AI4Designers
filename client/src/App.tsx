@@ -40,7 +40,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
 function AppContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const { sidebarData, isLoading: progressLoading } = useCourseProgress()
-  const [, navigate] = useLocation()
+  const [location, navigate] = useLocation()
 
   // Show loading state while fetching auth data
   if (authLoading) {
@@ -49,6 +49,19 @@ function AppContent() {
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect authenticated users from auth pages to course
+  if (isAuthenticated && (location === '/signin' || location === '/signup')) {
+    navigate('/day/1')
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Redirecting to course...</p>
         </div>
       </div>
     )

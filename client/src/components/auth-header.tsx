@@ -10,9 +10,11 @@ import {
 import { LogIn, LogOut, User, Settings } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { handleLogout } from "@/lib/authUtils"
+import { useLocation } from "wouter"
 
 export function AuthHeader() {
   const { user, isAuthenticated, isLoading } = useAuth()
+  const [, setLocation] = useLocation()
 
   if (isLoading) {
     return (
@@ -25,7 +27,7 @@ export function AuthHeader() {
   if (!isAuthenticated) {
     return (
       <Button
-        onClick={() => window.location.href = '/signin'}
+        onClick={() => setLocation('/signin')}
         data-testid="button-login"
       >
         <LogIn className="w-4 h-4 mr-2" />
@@ -66,7 +68,7 @@ export function AuthHeader() {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => window.location.href = '/profile'} className="w-full cursor-pointer">
+        <DropdownMenuItem onClick={() => setLocation('/profile')} className="w-full cursor-pointer">
           <Settings className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>

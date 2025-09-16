@@ -20,19 +20,20 @@ export interface User {
 }
 
 export function useAuth() {
-  const { data: user, isLoading } = useQuery<User | null>({
+  const { data: user, isLoading, refetch } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     // Uses global queryFn with proper 401 handling
     retry: false,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    refetchOnWindowFocus: false, // Don't refetch on window focus
-    refetchOnMount: true, // Only refetch on first mount, not 'always'
-    refetchOnReconnect: false, // Don't refetch on reconnect
+    staleTime: 30 * 1000, // Cache for 30 seconds (reduced for better sync)
+    refetchOnWindowFocus: true, // Refetch on window focus to catch auth changes
+    refetchOnMount: 'always', // Always refetch on mount to ensure fresh auth state
+    refetchOnReconnect: true, // Refetch on reconnect
   });
 
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
+    refetch, // Expose refetch for manual refetching
   };
 }

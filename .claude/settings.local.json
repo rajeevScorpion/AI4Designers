@@ -39,7 +39,11 @@
       "Bash(dir:*)",
       "Bash(copy:*)",
       "mcp__vercel__list_projects",
-      "Bash(npx tsc --noEmit --skipLibCheck)"
+      "Bash(npx tsc --noEmit --skipLibCheck)",
+      "Bash(timeout:*)",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_wait_for"
     ],
     "deny": [],
     "ask": []
