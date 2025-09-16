@@ -13,28 +13,15 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { LogIn, LogOut, User, Settings, Menu, X } from 'lucide-react'
-import { useSupabase } from '@/components/auth-provider'
-import { useQuery } from '@tanstack/react-query'
-
-async function fetchUser(supabase: any) {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
+import { useAuth } from '@/contexts/AuthContext'
 
 export function Header() {
   const router = useRouter()
-  const { supabase } = useSupabase()
+  const { user, isAuthenticated, isLoading, signOut } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['auth-user'],
-    queryFn: () => fetchUser(supabase),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
-  })
-
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    await signOut()
     router.push('/')
   }
 
@@ -44,7 +31,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-6">
+      <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
         {/* Logo and Navigation */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
@@ -86,9 +73,9 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
+                    <AvatarImage src={user.user_metadata?.avatar_url || user.user_metadata?.profile_image_url} alt={user.email} />
                     <AvatarFallback>
-                      {user.email?.[0]?.toUpperCase() || 'U'}
+                      {(user.user_metadata?.full_name || user.user_metadata?.first_name || user.email)?.[0]?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -97,7 +84,7 @@ export function Header() {
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium">
-                      {user.user_metadata?.full_name || user.email}
+                      {user.user_metadata?.full_name || `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim() || user.email}
                     </p>
                     {user.email && (
                       <p className="w-[200px] truncate text-sm text-muted-foreground">

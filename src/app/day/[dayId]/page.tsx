@@ -16,6 +16,7 @@ import type { CourseDay } from "@shared/schema"
 import { courseData } from "@shared/courseData"
 import { useQuery } from '@tanstack/react-query'
 import { useSupabase } from '@/components/auth-provider'
+import { useCourse } from '@/contexts/CourseContext'
 
 interface DayProps {
   params: {
@@ -39,7 +40,15 @@ export default function Day({ params }: DayProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { supabase } = useSupabase()
+  const { setCurrentDay } = useCourse()
   const dayId = parseInt(params.dayId)
+
+  // Set current day in context
+  useEffect(() => {
+    setCurrentDay(dayId)
+    // Reset when leaving the page
+    return () => setCurrentDay(null)
+  }, [dayId, setCurrentDay])
 
   const [completedSections, setCompletedSections] = useState<string[]>([])
   const [quizScores, setQuizScores] = useState<Record<string, number>>({})

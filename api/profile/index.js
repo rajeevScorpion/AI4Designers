@@ -1,16 +1,29 @@
 import { db } from "../shared/supabase.js";
-import { authenticateUser } from "../auth/index.js";
+import { supabaseAdmin } from "../shared/supabase.js";
 
 export default async function handler(req, res) {
   try {
-    const user = await authenticateUser(req, res);
-    if (!user) return;
+    // Get the Authorization header
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Unauthorized: No token provided' });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    }
 
     const userId = user.id;
 
     if (req.method === 'GET') {
-      const user = await db.getUser(userId);
-      res.json(user);
+      const userData = await db.getUser(userId);
+      res.json(userData);
     } else if (req.method === 'PUT') {
       const profileData = req.body;
 

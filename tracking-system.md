@@ -1,7 +1,7 @@
 # Progress Tracking Implementation Documentation
 
 ## Project Overview
-Implementing a comprehensive progress tracking system for the AI Fundamentals for Designers course application, deployed on Vercel serverless functions.
+Implementing a comprehensive progress tracking system for the AI Fundamentals for Designers course application. 
 
 ## Current State (Before Implementation)
 - ✅ Basic course content structure exists
