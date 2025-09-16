@@ -43,7 +43,9 @@
       "Bash(timeout:*)",
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_fill_form",
-      "mcp__playwright__browser_wait_for"
+      "mcp__playwright__browser_wait_for",
+      "Bash(npx create-next-app:*)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []
