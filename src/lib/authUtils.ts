@@ -1,16 +1,15 @@
-export function isUnauthorizedError(error: Error): boolean {
-  return /^401: .*Unauthorized/.test(error.message);
-}
+// This utility is now deprecated for Next.js app router.
+// Instead, use the handleSignOut function directly in components:
 
-// Clear authentication data
-export function clearAuth() {
-  localStorage.removeItem('supabase_token');
-  document.cookie = 'supabase_token=; path=/; max-age=0; Secure; SameSite=Lax';
-}
+/*
+export function handleSignOut() {
+  // Example usage in a component:
+  const { supabase } = useSupabase()
+  const router = useRouter()
 
-// Handle logout
-export function handleLogout() {
-  clearAuth();
-  // Redirect to logout endpoint to clear server-side session
-  window.location.href = '/api/logout';
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
 }
+*/
