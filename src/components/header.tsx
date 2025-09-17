@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Menu, X, PanelLeftIcon } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -47,13 +48,18 @@ export function Header() {
         {/* Auth Section */}
         <div className="flex items-center gap-4">
 
+          {/* Theme Toggle Button */}
+          <ThemeToggle />
+
           {/* Course Menu Button - shows on all screens */}
           <SidebarTrigger className="h-8 w-8" />
 
           {/* Sign In Button */}
-          <Button variant="outline" size="sm">
-            Sign In
-          </Button>
+          <Link href="/signin">
+            <Button variant="default" size="sm">
+              Sign In
+            </Button>
+          </Link>
 
           {/* Mobile Menu Button */}
           <Button
