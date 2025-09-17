@@ -2,12 +2,8 @@
 
 import { Header } from './header'
 import { CourseSidebar } from './course-sidebar'
-import {
-  Sidebar,
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-} from '@/components/ui/sidebar'
+import { useSidebar } from '@/components/ui/sidebar'
+import { SidebarInset, Sidebar } from '@/components/ui/sidebar'
 
 // Mock course data - this should come from an API or context
 const mockCourseDays = [
@@ -85,28 +81,28 @@ interface LayoutWrapperProps {
 export function LayoutWrapper({ children }: LayoutWrapperProps) {
   // Use mock data without authentication
   const courseDays = mockCourseDays
+  const { open, setOpen, openMobile, setOpenMobile, isMobile } = useSidebar()
 
   // Always show header, sidebar and content
   return (
-    <div className="min-h-screen">
-      <Header />
-      <SidebarProvider>
-        <div className="flex">
-          <CourseSidebar
-            days={courseDays}
-            currentDay={1}
-          />
-          <SidebarInset>
-            <div className="flex items-center gap-2 p-4 border-b">
-              <SidebarTrigger className="-ml-1" />
-              <div className="w-full" />
-            </div>
-            <main className="flex-1 p-6 max-w-6xl mx-auto">
-              {children}
-            </main>
-          </SidebarInset>
+    <>
+      {/* Desktop Sidebar */}
+      <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
+        <CourseSidebar
+          days={courseDays}
+          currentDay={1}
+        />
+      </Sidebar>
+
+      {/* Main content area with SidebarInset for proper centering */}
+      <SidebarInset className="flex flex-col">
+        <div className="max-w-7xl mx-auto w-full px-6">
+          <Header />
         </div>
-      </SidebarProvider>
-    </div>
+        <main className="flex-1 max-w-5xl mx-auto px-6 py-8 w-full">
+          {children}
+        </main>
+      </SidebarInset>
+    </>
   )
 }

@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, PanelLeftIcon } from 'lucide-react'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
+      <div className="flex h-16 items-center justify-between w-full">
         {/* Logo and Navigation */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
@@ -46,6 +47,14 @@ export function Header() {
         {/* Auth Section */}
         <div className="flex items-center gap-4">
 
+          {/* Course Menu Button - shows on all screens */}
+          <SidebarTrigger className="h-8 w-8" />
+
+          {/* Sign In Button */}
+          <Button variant="outline" size="sm">
+            Sign In
+          </Button>
+
           {/* Mobile Menu Button */}
           <Button
             variant="ghost"
@@ -61,7 +70,7 @@ export function Header() {
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-background">
-          <div className="container px-6 py-4 space-y-3">
+          <div className="px-6 py-4 space-y-3">
             <Link
               href="/"
               className="block text-sm font-medium py-2"

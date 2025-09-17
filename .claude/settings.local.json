@@ -60,7 +60,8 @@
       "mcp__supabase__get_project",
       "Bash(npm uninstall:*)",
       "Bash(cp:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

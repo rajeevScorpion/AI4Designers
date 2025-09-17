@@ -1,14 +1,4 @@
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader
-} from "@/components/ui/sidebar"
+// Removed sidebar imports since we're now using a sheet
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle, Circle, BookOpen, Brain, Wrench, Play } from "lucide-react"
@@ -43,79 +33,87 @@ export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
   }
 
   return (
-    <Sidebar data-testid="sidebar-course">
-      <SidebarHeader className="p-6">
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">AI Fundamentals</h2>
-          <p className="text-sm text-muted-foreground">5-Day Crash Course</p>
-        </div>
-      </SidebarHeader>
+    <div data-testid="sidebar-course" className="space-y-6 h-full overflow-y-auto pt-6">
+      {/* Course header is now shown in the sheet header */}
 
-      <SidebarContent>
-        {days.map((day) => (
-          <SidebarGroup key={day.id}>
-            <SidebarGroupLabel className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-2">
-                {day.isCompleted ? (
-                  <CheckCircle className="w-4 h-4 text-chart-3" />
-                ) : (
-                  <Circle className="w-4 h-4 text-muted-foreground" />
-                )}
-                <span>Day {day.id}</span>
-              </div>
-              {day.id === currentDay && (
-                <Badge variant="default" className="text-xs">
-                  Current
-                </Badge>
+      {/* Course days */}
+      {days.map((day) => (
+        <div key={day.id} className="space-y-2">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2">
+              {day.isCompleted ? (
+                <CheckCircle className="w-4 h-4 text-chart-3" />
+              ) : (
+                <Circle className="w-4 h-4 text-muted-foreground" />
               )}
-            </SidebarGroupLabel>
+              <span className="font-medium">Day {day.id}</span>
+            </div>
+            {day.id === currentDay && (
+              <Badge variant="default" className="text-xs">
+                Current
+              </Badge>
+            )}
+          </div>
 
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    className={day.id === currentDay ? "bg-sidebar-accent" : ""}
-                    data-testid={`button-sidebar-day-${day.id}`}
-                  >
-                    <Link href={`/day/${day.id}`}>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{day.title}</div>
-                        {day.progress > 0 && (
-                          <div className="mt-1">
-                            <Progress value={day.progress} className="h-1" />
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+          <div className="space-y-1">
+            {/* Day link */}
+            <Link
+              href={`/day/${day.id}`}
+              className={`block p-2 rounded-md text-sm font-medium transition-colors hover:bg-accent ${
+                day.id === currentDay ? "bg-accent" : ""
+              }`}
+              data-testid={`button-sidebar-day-${day.id}`}
+              onClick={() => {
+                // Close the sidebar when navigating
+                const sheet = document.querySelector('[data-state="open"] [role="dialog"]');
+                if (sheet) {
+                  const closeButton = sheet.querySelector('button[aria-label="Close"]');
+                  if (closeButton) {
+                    (closeButton as HTMLButtonElement).click();
+                  }
+                }
+              }}
+            >
+              <div className="flex-1">
+                <div>{day.title}</div>
+                {day.progress > 0 && (
+                  <div className="mt-1">
+                    <Progress value={day.progress} className="h-1" />
+                  </div>
+                )}
+              </div>
+            </Link>
 
-                {/* Show sections for all days */}
-                {day.sections.map((section) => (
-                  <SidebarMenuItem key={section.id}>
-                    <SidebarMenuButton
-                      asChild
-                      className="pl-6 py-1"
-                      data-testid={`button-sidebar-section-${section.id}`}
-                    >
-                      <Link href={`/day/${day.id}#${section.id}`}>
-                        <div className="flex items-center gap-2">
-                          {getSectionIcon(section.type)}
-                          <span className="text-xs">{section.title}</span>
-                          {section.isCompleted && (
-                            <CheckCircle className="w-3 h-3 text-chart-3 ml-auto" />
-                          )}
-                        </div>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
-      </SidebarContent>
-    </Sidebar>
+            {/* Sections */}
+            {day.sections.map((section) => (
+              <Link
+                key={section.id}
+                href={`/day/${day.id}#${section.id}`}
+                className="flex items-center gap-2 p-2 pl-6 rounded-md text-xs transition-colors hover:bg-accent"
+                data-testid={`button-sidebar-section-${section.id}`}
+                onClick={() => {
+                  // Close the sidebar when navigating
+                  const sheet = document.querySelector('[data-state="open"] [role="dialog"]');
+                  if (sheet) {
+                    const closeButton = sheet.querySelector('button[aria-label="Close"]');
+                    if (closeButton) {
+                      (closeButton as HTMLButtonElement).click();
+                    }
+                  }
+                }}
+              >
+                {getSectionIcon(section.type)}
+                <span>{section.title}</span>
+                {section.isCompleted && (
+                  <CheckCircle className="w-3 h-3 text-chart-3 ml-auto" />
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ))}
+      {/* Add padding at bottom for better scrolling */}
+      <div className="pb-6" />
+    </div>
   )
 }
