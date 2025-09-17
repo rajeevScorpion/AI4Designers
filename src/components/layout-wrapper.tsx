@@ -1,0 +1,112 @@
+'use client'
+
+import { Header } from './header'
+import { CourseSidebar } from './course-sidebar'
+import {
+  Sidebar,
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
+
+// Mock course data - this should come from an API or context
+const mockCourseDays = [
+  {
+    id: 1,
+    title: "Introduction to AI",
+    sections: [
+      { id: "intro", title: "What is AI?", type: "content" as const, isCompleted: false },
+      { id: "history", title: "History of AI", type: "content" as const, isCompleted: false },
+      { id: "types", title: "Types of AI", type: "content" as const, isCompleted: false },
+      { id: "activity1", title: "AI in Daily Life", type: "activity" as const, isCompleted: false },
+      { id: "quiz1", title: "Day 1 Quiz", type: "quiz" as const, isCompleted: false }
+    ],
+    isCompleted: false,
+    progress: 0
+  },
+  {
+    id: 2,
+    title: "Machine Learning Basics",
+    sections: [
+      { id: "ml-intro", title: "What is Machine Learning?", type: "content" as const, isCompleted: false },
+      { id: "supervised", title: "Supervised Learning", type: "content" as const, isCompleted: false },
+      { id: "unsupervised", title: "Unsupervised Learning", type: "content" as const, isCompleted: false },
+      { id: "activity2", title: "ML Algorithm Identification", type: "activity" as const, isCompleted: false },
+      { id: "quiz2", title: "Day 2 Quiz", type: "quiz" as const, isCompleted: false }
+    ],
+    isCompleted: false,
+    progress: 0
+  },
+  {
+    id: 3,
+    title: "Neural Networks & Deep Learning",
+    sections: [
+      { id: "nn-intro", title: "Introduction to Neural Networks", type: "content" as const, isCompleted: false },
+      { id: "dl-basics", title: "Deep Learning Fundamentals", type: "content" as const, isCompleted: false },
+      { id: "cnn", title: "Convolutional Neural Networks", type: "content" as const, isCompleted: false },
+      { id: "activity3", title: "Build a Simple NN", type: "activity" as const, isCompleted: false },
+      { id: "quiz3", title: "Day 3 Quiz", type: "quiz" as const, isCompleted: false }
+    ],
+    isCompleted: false,
+    progress: 0
+  },
+  {
+    id: 4,
+    title: "AI in Design",
+    sections: [
+      { id: "ai-design", title: "AI Tools for Designers", type: "content" as const, isCompleted: false },
+      { id: "generative", title: "Generative AI", type: "content" as const, isCompleted: false },
+      { id: "ethics", title: "AI Ethics & Bias", type: "content" as const, isCompleted: false },
+      { id: "activity4", title: "AI Design Challenge", type: "activity" as const, isCompleted: false },
+      { id: "quiz4", title: "Day 4 Quiz", type: "quiz" as const, isCompleted: false }
+    ],
+    isCompleted: false,
+    progress: 0
+  },
+  {
+    id: 5,
+    title: "Future of AI & Capstone",
+    sections: [
+      { id: "future", title: "Future Trends in AI", type: "content" as const, isCompleted: false },
+      { id: "careers", title: "AI Careers in Design", type: "content" as const, isCompleted: false },
+      { id: "capstone", title: "Capstone Project", type: "activity" as const, isCompleted: false },
+      { id: "presentation", title: "Final Presentation", type: "activity" as const, isCompleted: false },
+      { id: "quiz5", title: "Day 5 Quiz", type: "quiz" as const, isCompleted: false }
+    ],
+    isCompleted: false,
+    progress: 0
+  }
+]
+
+interface LayoutWrapperProps {
+  children: React.ReactNode
+}
+
+export function LayoutWrapper({ children }: LayoutWrapperProps) {
+  // Use mock data without authentication
+  const courseDays = mockCourseDays
+
+  // Always show header, sidebar and content
+  return (
+    <div className="min-h-screen">
+      <Header />
+      <SidebarProvider>
+        <div className="flex">
+          <CourseSidebar
+            days={courseDays}
+            currentDay={1}
+          />
+          <SidebarInset>
+            <div className="flex items-center gap-2 p-4 border-b">
+              <SidebarTrigger className="-ml-1" />
+              <div className="w-full" />
+            </div>
+            <main className="flex-1 p-6 max-w-6xl mx-auto">
+              {children}
+            </main>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    </div>
+  )
+}

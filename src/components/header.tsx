@@ -1,0 +1,91 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Menu, X } from 'lucide-react'
+
+export function Header() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
+        {/* Logo and Navigation */}
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">AI</span>
+            </div>
+            <span className="font-semibold text-lg">AI4Designers</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link
+              href="/"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Home
+            </Link>
+            <Link
+              href="/day/1"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Course
+            </Link>
+            <Link
+              href="/profile"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Profile
+            </Link>
+          </nav>
+        </div>
+
+        {/* Auth Section */}
+        <div className="flex items-center gap-4">
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t bg-background">
+          <div className="container px-6 py-4 space-y-3">
+            <Link
+              href="/"
+              className="block text-sm font-medium py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              href="/day/1"
+              className="block text-sm font-medium py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Course
+            </Link>
+            <Link
+              href="/profile"
+              className="block text-sm font-medium py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Profile
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
+  )
+}
