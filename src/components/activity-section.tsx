@@ -8,13 +8,44 @@ interface ActivitySectionProps {
   activity: Activity
   sectionId: string
   isCompleted: boolean
+  isAccessible: boolean
   onMarkComplete: (sectionId: string) => void
 }
 
-export function ActivitySection({ activity, sectionId, isCompleted, onMarkComplete }: ActivitySectionProps) {
+export function ActivitySection({ activity, sectionId, isCompleted, isAccessible, onMarkComplete }: ActivitySectionProps) {
   const handleMarkComplete = () => {
     console.log(`Marking section ${sectionId} as complete`)
     onMarkComplete(sectionId)
+  }
+
+  // Show locked state if section is not accessible
+  if (!isAccessible) {
+    return (
+      <Card className="p-6 opacity-60" data-testid={`activity-${activity.id}`}>
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Wrench className="w-5 h-5 text-grey-500" />
+            <h3 className="text-lg font-semibold text-grey-600">{activity.title}</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-grey-500 rounded-full flex items-center justify-center">
+              <div className="w-2 h-2 bg-grey-300 rounded-sm"></div>
+            </div>
+            <span className="text-sm text-grey-500">Locked</span>
+          </div>
+        </div>
+
+        <div className="text-center py-8">
+          <div className="w-12 h-12 bg-grey-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-6 h-6 bg-grey-400 rounded-full flex items-center justify-center">
+              <div className="w-3 h-3 bg-grey-300 rounded-sm"></div>
+            </div>
+          </div>
+          <p className="text-grey-600 mb-2">Complete the previous activity to unlock this section</p>
+          <p className="text-sm text-grey-500">Activities must be completed in sequential order</p>
+        </div>
+      </Card>
+    )
   }
 
   return (

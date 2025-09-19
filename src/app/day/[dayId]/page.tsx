@@ -10,8 +10,10 @@ import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
 import { TabbedVideoSection } from "@/components/tabbed-video-section"
 import { DayStickyNav } from "@/components/day-sticky-nav"
+import { ClickableProgress } from "@/components/ui/clickable-progress"
 import { Header } from "@/components/header"
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
+import { useConfetti } from "@/hooks/use-confetti"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { CourseDay } from "@shared/schema"
 import { courseData } from "@shared/courseData"
@@ -31,6 +33,8 @@ export default function Day({ params }: DayProps) {
   const [completedSections, setCompletedSections] = useState<string[]>([])
   const [quizScores, setQuizScores] = useState<Record<string, number>>({})
   const [currentPage, setCurrentPage] = useState(0)
+  const [completedDays, setCompletedDays] = useState<number[]>([])
+  const { celebrateCompletion, smallCelebration } = useConfetti()
 
   // Handle anchor links
   useEffect(() => {
@@ -104,10 +108,14 @@ export default function Day({ params }: DayProps) {
       const newCompletedSections = [...completedSections]
       if (!newCompletedSections.includes(sectionId)) {
         newCompletedSections.push(sectionId)
+
+        // Trigger confetti animation
+        smallCelebration()
       }
 
       // Update local state only - no backend persistence
       setCompletedSections(newCompletedSections)
+
       console.log('Section completion tracking disabled - authentication removed')
     } catch (error) {
       console.error('Error updating progress:', error)
@@ -119,6 +127,10 @@ export default function Day({ params }: DayProps) {
     try {
       const newQuizScores = { ...quizScores, [quizId]: score }
       setQuizScores(newQuizScores)
+
+      // Trigger confetti for quiz completion
+      smallCelebration()
+
       console.log('Quiz completion tracking disabled - authentication removed')
     } catch (error) {
       console.error('Error submitting quiz:', error)
@@ -142,15 +154,69 @@ export default function Day({ params }: DayProps) {
     }
   }
 
+  const handleNextDay = () => {
+    const nextDay = dayId + 1
+    if (nextDay <= 5) {
+      router.push(`/day/${nextDay}`)
+    }
+  }
+
+  const checkAllSectionsCompleted = () => {
+    const requiredSections = dayData.sections.filter(section =>
+      section.type === 'activity' || section.type === 'quiz'
+    )
+    return requiredSections.every(section =>
+      completedSections.includes(section.id)
+    )
+  }
+
+  const isFinalPage = currentPage === totalPages - 1
+  const isFinalSection = isFinalPage && currentSections.length === 1
+  const allSectionsCompleted = checkAllSectionsCompleted()
+
   const goToNextPage = () => {
-    if (currentPage < totalPages - 1) {
+    if (currentPage < totalPages - 1 && unlockedSections.includes(currentPage + 1)) {
       setCurrentPage(currentPage + 1)
     }
   }
 
   const goToPreviousPage = () => {
-    if (currentPage > 0) {
+    if (currentPage > 0 && unlockedSections.includes(currentPage - 1)) {
       setCurrentPage(currentPage - 1)
+    }
+  }
+
+  // Calculate unlocked sections based on completion status
+  const getUnlockedSections = () => {
+    const unlocked: number[] = []
+
+    // First section is always unlocked
+    unlocked.push(0)
+
+    // Unlock subsequent sections only if previous ones are completed
+    for (let i = 1; i < dayData.sections.length; i++) {
+      const previousSectionId = dayData.sections[i - 1].id
+      if (completedSections.includes(previousSectionId)) {
+        unlocked.push(i)
+      } else {
+        break // Stop at the first incomplete section
+      }
+    }
+
+    return unlocked
+  }
+
+  const unlockedSections = getUnlockedSections()
+
+  // Check if a specific section is accessible
+  const isSectionAccessible = (sectionIndex: number) => {
+    return unlockedSections.includes(sectionIndex)
+  }
+
+  const handleSectionClick = (sectionIndex: number) => {
+    // Only allow navigation to unlocked sections
+    if (unlockedSections.includes(sectionIndex)) {
+      setCurrentPage(sectionIndex)
     }
   }
 
@@ -219,22 +285,37 @@ export default function Day({ params }: DayProps) {
               {dayData.description}
             </p>
 
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Progress</span>
-                  <span className="text-sm text-muted-foreground">
-                    {calculateProgress()}%
-                  </span>
-                </div>
-                <Progress value={calculateProgress()} className="h-2" />
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Progress</span>
+                <span className="text-sm text-muted-foreground">
+                  {calculateProgress()}%
+                </span>
               </div>
-              {currentPageCompleted && (
-                <Badge className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  Page Complete
-                </Badge>
-              )}
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <ClickableProgress
+                    value={calculateProgress()}
+                    sections={totalPages}
+                    completedSections={completedSections}
+                    currentPage={currentPage}
+                    currentPageCompleted={currentPageCompleted}
+                    onSectionClick={handleSectionClick}
+                    unlockedSections={unlockedSections}
+                    className="h-2"
+                  />
+                </div>
+                {currentPageCompleted && unlockedSections.includes(currentPage + 1) && (
+                  <Button
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages - 1}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    Next
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -247,6 +328,7 @@ export default function Day({ params }: DayProps) {
                     section={section}
                     onMarkComplete={() => handleSectionComplete(section.id)}
                     isCompleted={completedSections.includes(section.id)}
+                    isAccessible={isSectionAccessible(currentPage)}
                   />
                 )}
 
@@ -255,6 +337,7 @@ export default function Day({ params }: DayProps) {
                     activity={section.activity}
                     sectionId={section.id}
                     isCompleted={completedSections.includes(section.id)}
+                    isAccessible={isSectionAccessible(currentPage)}
                     onMarkComplete={handleSectionComplete}
                   />
                 )}
@@ -263,9 +346,13 @@ export default function Day({ params }: DayProps) {
                   <QuizSection
                     quiz={section.quiz}
                     isCompleted={completedSections.includes(section.id)}
+                    isAccessible={isSectionAccessible(currentPage)}
                     score={quizScores[section.id]}
                     onQuizComplete={(quizId, score) => handleQuizComplete(quizId, score)}
                     onQuizRetake={handleQuizRetake}
+                    isFinalSection={isFinalSection}
+                    allSectionsCompleted={allSectionsCompleted}
+                    onNextDay={handleNextDay}
                   />
                 )}
 
@@ -274,6 +361,7 @@ export default function Day({ params }: DayProps) {
                     videos={section.videos || (section.videoUrl ? [{ title: section.title || 'Video', videoUrl: section.videoUrl, description: section.videoDescription }] : [])}
                     sectionId={section.id}
                     isCompleted={completedSections.includes(section.id)}
+                    isAccessible={isSectionAccessible(currentPage)}
                     onMarkComplete={handleSectionComplete}
                   />
                 )}
@@ -286,7 +374,7 @@ export default function Day({ params }: DayProps) {
             <Button
               variant="outline"
               onClick={goToPreviousPage}
-              disabled={currentPage === 0}
+              disabled={currentPage === 0 || !unlockedSections.includes(currentPage - 1)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Previous
@@ -298,7 +386,7 @@ export default function Day({ params }: DayProps) {
 
             <Button
               onClick={goToNextPage}
-              disabled={currentPage === totalPages - 1}
+              disabled={currentPage === totalPages - 1 || !unlockedSections.includes(currentPage + 1)}
             >
               Next
               <ArrowRight className="h-4 w-4 ml-2" />

@@ -4,19 +4,23 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { CheckCircle, Brain, AlertCircle, Award, Info } from "lucide-react"
+import { CheckCircle, Brain, AlertCircle, Award, Info, ArrowRight } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Quiz } from "@shared/schema"
 
 interface QuizSectionProps {
   quiz: Quiz
   isCompleted: boolean
+  isAccessible: boolean
   score?: number
   onQuizComplete: (quizId: string, score: number) => void
   onQuizRetake: (quizId: string) => void
+  isFinalSection?: boolean
+  allSectionsCompleted?: boolean
+  onNextDay?: () => void
 }
 
-export function QuizSection({ quiz, isCompleted, score, onQuizComplete, onQuizRetake }: QuizSectionProps) {
+export function QuizSection({ quiz, isCompleted, isAccessible, score, onQuizComplete, onQuizRetake, isFinalSection = false, allSectionsCompleted = false, onNextDay }: QuizSectionProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [showResults, setShowResults] = useState(isCompleted)
@@ -63,6 +67,36 @@ export function QuizSection({ quiz, isCompleted, score, onQuizComplete, onQuizRe
 
   const question = quiz.questions[currentQuestion]
   const isAnswered = question.id in answers
+
+  // Show locked state if section is not accessible
+  if (!isAccessible) {
+    return (
+      <Card className="p-6 opacity-60" data-testid={`quiz-${quiz.id}`}>
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Brain className="w-5 h-5 text-grey-500" />
+            <h3 className="text-lg font-semibold text-grey-600">{quiz.title}</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-grey-500 rounded-full flex items-center justify-center">
+              <div className="w-2 h-2 bg-grey-300 rounded-sm"></div>
+            </div>
+            <span className="text-sm text-grey-500">Locked</span>
+          </div>
+        </div>
+
+        <div className="text-center py-8">
+          <div className="w-12 h-12 bg-grey-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-6 h-6 bg-grey-400 rounded-full flex items-center justify-center">
+              <div className="w-3 h-3 bg-grey-300 rounded-sm"></div>
+            </div>
+          </div>
+          <p className="text-grey-600 mb-2">Complete the previous activity to unlock this quiz</p>
+          <p className="text-sm text-grey-500">Activities must be completed in sequential order</p>
+        </div>
+      </Card>
+    )
+  }
 
   if (showResults) {
     const correctAnswers = quiz.questions.filter(q =>
@@ -125,7 +159,7 @@ export function QuizSection({ quiz, isCompleted, score, onQuizComplete, onQuizRe
           </div>
         </div>
 
-        {/* Retake Button */}
+        {/* Action Buttons */}
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex items-center gap-2">
             <Button
@@ -146,6 +180,18 @@ export function QuizSection({ quiz, isCompleted, score, onQuizComplete, onQuizRe
               </TooltipContent>
             </Tooltip>
           </div>
+
+          {isFinalSection && (
+            <Button
+              onClick={onNextDay}
+              disabled={!allSectionsCompleted}
+              className="flex items-center gap-2"
+              data-testid="button-next-day"
+            >
+              Next Day
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </Card>
       </TooltipProvider>

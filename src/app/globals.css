@@ -49,6 +49,17 @@
   --chart-4: 147.1429 78.5047% 41.9608%;
   --chart-5: 341.4894 75.2000% 50.9804%;
 
+  /* Grey colors for incomplete states */
+  --grey-100: 0 0% 96%;
+  --grey-200: 0 0% 86%;
+  --grey-300: 0 0% 76%;
+  --grey-400: 0 0% 66%;
+  --grey-500: 0 0% 56%;
+  --grey-600: 0 0% 46%;
+  --grey-700: 0 0% 36%;
+  --grey-800: 0 0% 26%;
+  --grey-900: 0 0% 16%;
+
   --font-sans: 'Lora', serif;
   --font-serif: 'Geist', sans-serif;
   --font-mono: 'Space Grotesk', sans-serif;
@@ -139,6 +150,17 @@
   --chart-3: 42.0290 92.8251% 56.2745%;
   --chart-4: 147.1429 78.5047% 41.9608%;
   --chart-5: 341.4894 75.2000% 50.9804%;
+
+  /* Grey colors for incomplete states */
+  --grey-100: 210 5.2632% 94.9020%;
+  --grey-200: 210 5.2632% 84.9020%;
+  --grey-300: 210 5.2632% 74.9020%;
+  --grey-400: 210 5.2632% 64.9020%;
+  --grey-500: 210 5.2632% 54.9020%;
+  --grey-600: 210 5.2632% 44.9020%;
+  --grey-700: 210 5.2632% 34.9020%;
+  --grey-800: 210 5.2632% 24.9020%;
+  --grey-900: 210 5.2632% 14.9020%;
 
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
@@ -319,4 +341,53 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Flag animations and styles */
+.flag-pole {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.flag-pole::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, #8B4513, #A0522D);
+  transition: all 0.3s ease;
+}
+
+.flag-wave {
+  animation: wave 2s ease-in-out infinite;
+  transform-origin: left center;
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(2deg); }
+  75% { transform: rotate(-2deg); }
+}
+
+.flag-complete {
+  animation: flagComplete 0.6s ease-out;
+}
+
+@keyframes flagComplete {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Clickable progress bar styles */
+.progress-segment {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.progress-segment:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }

@@ -46,6 +46,7 @@ export default function ActivitySectionExample() {
       activity={mockActivity}
       sectionId="example-section"
       isCompleted={false}
+      isAccessible={true}
       onMarkComplete={(activityId) => console.log(`Completed activity: ${activityId}`)}
     />
   )
