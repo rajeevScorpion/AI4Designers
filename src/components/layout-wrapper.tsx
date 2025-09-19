@@ -123,9 +123,7 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
 
       {/* Main content area with SidebarInset for proper centering */}
       <SidebarInset className="flex flex-col">
-        <div className="max-w-7xl mx-auto w-full px-6">
-          <Header />
-        </div>
+        <Header />
         <main className="flex-1 max-w-5xl mx-auto px-6 py-8 w-full">
           {children}
         </main>
