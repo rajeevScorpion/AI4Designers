@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, ExternalLink, Star, Wrench } from "lucide-react"
 import type { Activity } from "@shared/schema"
+import { smoothScrollToTop } from "@/lib/smooth-scroll"
 
 interface ActivitySectionProps {
   activity: Activity
@@ -16,6 +17,16 @@ export function ActivitySection({ activity, sectionId, isCompleted, isAccessible
   const handleMarkComplete = () => {
     console.log(`Marking section ${sectionId} as complete`)
     onMarkComplete(sectionId)
+    // Scroll to top with custom smooth animation
+    smoothScrollToTop({
+      duration: 1200,
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+    })
+  }
+
+  const handleMarkIncomplete = () => {
+    console.log(`Marking section ${sectionId} as incomplete`)
+    onMarkComplete(sectionId) // This will toggle completion status
   }
 
   // Show locked state if section is not accessible
@@ -108,12 +119,24 @@ export function ActivitySection({ activity, sectionId, isCompleted, isAccessible
         </div>
       </div>
       
-      {!isCompleted && (
-        <Button onClick={handleMarkComplete} data-testid={`button-complete-${activity.id}`}>
-          Mark Activity Complete
-          <CheckCircle className="w-4 h-4 ml-2" />
-        </Button>
-      )}
+      <Button
+        onClick={isCompleted ? handleMarkIncomplete : handleMarkComplete}
+        variant={isCompleted ? "outline" : "default"}
+        className={isCompleted ? "text-muted-foreground hover:text-foreground" : ""}
+        data-testid={`button-complete-${activity.id}`}
+      >
+        {isCompleted ? (
+          <>
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Completed
+          </>
+        ) : (
+          <>
+            Mark Activity Complete
+            <CheckCircle className="w-4 h-4 ml-2" />
+          </>
+        )}
+      </Button>
     </Card>
   )
 }

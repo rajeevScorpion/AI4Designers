@@ -9,6 +9,7 @@ import {
 import { ConceptCard } from "@/components/concept-card"
 import type { CourseSection } from "@shared/schema"
 import type { LucideIcon } from "lucide-react"
+import { smoothScrollToTop } from "@/lib/smooth-scroll"
 
 interface SectionContentProps {
   section: CourseSection
@@ -53,6 +54,11 @@ export function SectionContent({ section, isCompleted, isAccessible, onMarkCompl
   const handleMarkComplete = () => {
     console.log(`Marking section ${section.id} as complete`)
     onMarkComplete(section.id)
+    // Scroll to top with custom smooth animation
+    smoothScrollToTop({
+      duration: 1200,
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+    })
   }
 
   // Show locked state if section is not accessible
@@ -135,12 +141,24 @@ export function SectionContent({ section, isCompleted, isAccessible, onMarkCompl
           </div>
         )}
         
-        {!isCompleted && (
-          <Button onClick={handleMarkComplete} data-testid={`button-complete-${section.id}`}>
-            Mark as Complete
-            <CheckCircle className="w-4 h-4 ml-2" />
-          </Button>
-        )}
+        <Button
+          onClick={handleMarkComplete}
+          variant={isCompleted ? "outline" : "default"}
+          className={isCompleted ? "text-muted-foreground hover:text-foreground" : ""}
+          data-testid={`button-complete-${section.id}`}
+        >
+          {isCompleted ? (
+            <>
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Completed
+            </>
+          ) : (
+            <>
+              Mark as Complete
+              <CheckCircle className="w-4 h-4 ml-2" />
+            </>
+          )}
+        </Button>
       </Card>
     )
   }
@@ -170,12 +188,24 @@ export function SectionContent({ section, isCompleted, isAccessible, onMarkCompl
           </div>
         </div>
         
-        {!isCompleted && (
-          <Button onClick={handleMarkComplete} data-testid={`button-complete-${section.id}`}>
-            Mark as Watched
-            <CheckCircle className="w-4 h-4 ml-2" />
-          </Button>
-        )}
+        <Button
+          onClick={handleMarkComplete}
+          variant={isCompleted ? "outline" : "default"}
+          className={isCompleted ? "text-muted-foreground hover:text-foreground" : ""}
+          data-testid={`button-complete-${section.id}`}
+        >
+          {isCompleted ? (
+            <>
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Completed
+            </>
+          ) : (
+            <>
+              Mark as Watched
+              <CheckCircle className="w-4 h-4 ml-2" />
+            </>
+          )}
+        </Button>
       </Card>
     )
   }

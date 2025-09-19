@@ -88,64 +88,7 @@ export const ClickableProgress = React.forwardRef<
         </div>
       </div>
 
-      {/* Section indicators below the progress bar */}
-      <div className="flex justify-between mt-3 px-1">
-        {segments.map((segment) => (
-          <button
-            key={segment.index}
-            onClick={() => segment.isUnlocked && onSectionClick(segment.index)}
-            disabled={!segment.isUnlocked}
-            className={cn(
-              "flex flex-col items-center gap-1 transition-all duration-200",
-              segment.isUnlocked ? "hover:scale-110" : "opacity-50 cursor-not-allowed"
-            )}
-            title={!segment.isUnlocked ? `Complete Activity ${segment.index} to unlock this section` : undefined}
-          >
-            {/* Section dot */}
-            <div
-              className={cn(
-                "w-3 h-3 rounded-full transition-all duration-300 flex items-center justify-center",
-                segment.isCompleted
-                  ? "bg-amber-800 ring-2 ring-amber-800/30"
-                  : segment.isCurrent
-                  ? currentPageCompleted
-                    ? "bg-amber-800 ring-2 ring-amber-800/20"
-                    : segment.isUnlocked
-                    ? "bg-amber-200 ring-2 ring-amber-200/20"
-                    : "bg-grey-400"
-                  : segment.isUnlocked
-                  ? "bg-grey-400 hover:bg-grey-500"
-                  : "bg-grey-500"
-              )}
-            >
-              {/* Lock icon for locked sections */}
-              {!segment.isUnlocked && (
-                <div className="w-1.5 h-1.5 bg-grey-300 rounded-sm"></div>
-              )}
-            </div>
-            {/* Section label */}
-            <span
-              className={cn(
-                "text-xs font-medium transition-colors duration-200",
-                segment.isCompleted
-                  ? "text-amber-800"
-                  : segment.isCurrent
-                  ? currentPageCompleted
-                    ? "text-amber-800"
-                    : segment.isUnlocked
-                    ? "text-amber-600"
-                    : "text-grey-500"
-                  : segment.isUnlocked
-                  ? "text-grey-600 hover:text-grey-800"
-                  : "text-grey-500"
-              )}
-            >
-              {segment.index + 1}
-            </span>
-          </button>
-        ))}
       </div>
-    </div>
   )
 })
 

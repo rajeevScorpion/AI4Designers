@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import type { CourseDay } from "@shared/schema"
 import { courseData } from "@shared/courseData"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { smoothScrollToTop } from "@/lib/smooth-scroll"
 
 interface DayProps {
   params: {
@@ -177,12 +178,26 @@ export default function Day({ params }: DayProps) {
   const goToNextPage = () => {
     if (currentPage < totalPages - 1 && unlockedSections.includes(currentPage + 1)) {
       setCurrentPage(currentPage + 1)
+      // Use custom smooth scroll with better easing
+      setTimeout(() => {
+        smoothScrollToTop({
+          duration: 1200,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        })
+      }, 50) // Small delay to ensure page content has updated
     }
   }
 
   const goToPreviousPage = () => {
     if (currentPage > 0 && unlockedSections.includes(currentPage - 1)) {
       setCurrentPage(currentPage - 1)
+      // Use custom smooth scroll with better easing
+      setTimeout(() => {
+        smoothScrollToTop({
+          duration: 1200,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        })
+      }, 50) // Small delay to ensure page content has updated
     }
   }
 
@@ -254,8 +269,8 @@ export default function Day({ params }: DayProps) {
         isAuthenticated={false}
       />
 
-      <div className="container mx-auto px-4 py-8 pt-24">
-        <div className="max-w-4xl mx-auto">
+      <div className="container mx-auto px-4 py-8 pt-24 smooth-scroll-container">
+        <div className="max-w-4xl mx-auto content-fade-in">
           {/* Auth Disabled Notice */}
           <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200 mb-6">
             <AlertDescription>
@@ -285,7 +300,7 @@ export default function Day({ params }: DayProps) {
               {dayData.description}
             </p>
 
-            <div className="mb-8">
+            <div className="mb-8 -mt-2">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Progress</span>
                 <span className="text-sm text-muted-foreground">
@@ -305,16 +320,6 @@ export default function Day({ params }: DayProps) {
                     className="h-2"
                   />
                 </div>
-                {currentPageCompleted && unlockedSections.includes(currentPage + 1) && (
-                  <Button
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages - 1}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  >
-                    Next
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
               </div>
             </div>
           </div>
@@ -322,7 +327,7 @@ export default function Day({ params }: DayProps) {
           {/* Content Sections */}
           <div className="space-y-8">
             {currentSections.map((section, index) => (
-              <Card key={section.id} className="p-6">
+              <Card key={section.id} className="p-6 section-card-hover">
                 {section.type === 'content' && (
                   <SectionContent
                     section={section}
@@ -380,6 +385,7 @@ export default function Day({ params }: DayProps) {
               Previous
             </Button>
 
+  
             <div className="text-sm text-muted-foreground">
               Page {currentPage + 1} of {totalPages}
             </div>

@@ -61,7 +61,8 @@
       "Bash(npm uninstall:*)",
       "Bash(cp:*)",
       "Bash(git init:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

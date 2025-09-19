@@ -39,11 +39,16 @@ export const useConfetti = () => {
     if (!canvas) return
 
     const defaultColors = [
-      'hsl(var(--primary))',
-      'hsl(var(--accent))',
-      'hsl(var(--secondary))',
-      '#ffffff',
-      '#f8f9fa'
+      '#FFB6C1', // Light Pink
+      '#FFA07A', // Light Salmon
+      '#98FB98', // Pale Green
+      '#87CEEB', // Sky Blue
+      '#DDA0DD', // Plum
+      '#F0E68C', // Khaki
+      '#FFE4B5', // Moccasin
+      '#B0E0E6', // Powder Blue
+      '#FFB6C1', // Light Pink (duplicate for more frequency)
+      '#98FB98'  // Pale Green (duplicate for more frequency)
     ]
 
     const confettiOptions = {
@@ -80,7 +85,7 @@ export const useConfetti = () => {
       angle: 0,
       spread: 90,
       origin: { x: 0, y: 0.5 },
-      particleCount: 50,
+      particleCount: 80,
       startVelocity: 55
     })
 
@@ -90,7 +95,7 @@ export const useConfetti = () => {
         angle: 180,
         spread: 90,
         origin: { x: 1, y: 0.5 },
-        particleCount: 50,
+        particleCount: 80,
         startVelocity: 55
       })
     }, 200)
@@ -101,18 +106,29 @@ export const useConfetti = () => {
         angle: 90,
         spread: 360,
         origin: { x: 0.5, y: 0.3 },
-        particleCount: 100,
+        particleCount: 150,
         startVelocity: 45
       })
     }, 400)
+
+    // Additional celebration burst
+    setTimeout(() => {
+      fireConfetti({
+        angle: 270,
+        spread: 180,
+        origin: { x: 0.5, y: 0.7 },
+        particleCount: 100,
+        startVelocity: 40
+      })
+    }, 600)
   }, [fireConfetti])
 
   const smallCelebration = useCallback(() => {
     fireConfetti({
-      particleCount: 30,
-      spread: 60,
+      particleCount: 60,
+      spread: 90,
       origin: { x: 0.5, y: 0.5 },
-      startVelocity: 30
+      startVelocity: 35
     })
   }, [fireConfetti])
 

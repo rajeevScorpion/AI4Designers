@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Clock, PlayCircle } from "lucide-react"
 import type { VideoResource } from "@shared/schema"
+import { smoothScrollToTop } from "@/lib/smooth-scroll"
 
 interface TabbedVideoSectionProps {
   videos: VideoResource[];
@@ -60,6 +61,11 @@ export function TabbedVideoSection({
 
   const handleMarkComplete = () => {
     onMarkComplete(sectionId)
+    // Scroll to top with custom smooth animation
+    smoothScrollToTop({
+      duration: 1200,
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+    })
   }
 
   return (
@@ -131,14 +137,14 @@ export function TabbedVideoSection({
                 <div className="flex justify-end pt-2">
                   <Button
                     onClick={handleMarkComplete}
-                    disabled={isCompleted}
                     variant={isCompleted ? "outline" : "default"}
+                    className={isCompleted ? "text-muted-foreground hover:text-foreground" : ""}
                     data-testid="button-mark-videos-complete"
                   >
                     {isCompleted ? (
                       <>
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Videos Watched
+                        Completed
                       </>
                     ) : (
                       'Mark Videos as Complete'
