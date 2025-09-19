@@ -10,6 +10,7 @@ import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
 import { TabbedVideoSection } from "@/components/tabbed-video-section"
 import { DayStickyNav } from "@/components/day-sticky-nav"
+import { Header } from "@/components/header"
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { CourseDay } from "@shared/schema"
@@ -176,6 +177,7 @@ export default function Day({ params }: DayProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <DayStickyNav
         dayId={dayId}
         title={dayData.title}

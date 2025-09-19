@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ArrowLeft, CheckCircle } from "lucide-react"
-import { useLocation } from "wouter"
+import { useRouter } from "next/navigation"
 
 interface DayStickyNavProps {
   dayId: number
@@ -23,7 +23,7 @@ export function DayStickyNav({
   progress,
   isAuthenticated
 }: DayStickyNavProps) {
-  const [, navigate] = useLocation()
+  const router = useRouter()
 
   return (
     <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -34,7 +34,7 @@ export function DayStickyNav({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/')}
+              onClick={() => router.push('/')}
               className="flex-shrink-0"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -82,7 +82,7 @@ export function DayStickyNav({
                 </div>
               </div>
               <Button
-                onClick={() => navigate('/signin')}
+                onClick={() => router.push('/signin')}
                 size="sm"
                 variant="outline"
                 className="text-xs h-7 px-3"

@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { Header } from './header'
 import { CourseSidebar } from './course-sidebar'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -79,11 +80,37 @@ interface LayoutWrapperProps {
 }
 
 export function LayoutWrapper({ children }: LayoutWrapperProps) {
+  const pathname = usePathname()
   // Use mock data without authentication
   const courseDays = mockCourseDays
   const { open, setOpen, openMobile, setOpenMobile, isMobile } = useSidebar()
 
-  // Always show header, sidebar and content
+  // Check if we're on a day page to avoid duplicate navigation
+  const isDayPage = pathname.startsWith('/day/')
+
+  // For day pages, we need a different layout to allow sticky nav to work properly
+  if (isDayPage) {
+    return (
+      <>
+        {/* Desktop Sidebar */}
+        <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
+          <CourseSidebar
+            days={courseDays}
+            currentDay={1}
+          />
+        </Sidebar>
+
+        {/* Main content area - include Header for day pages too */}
+        <SidebarInset className="flex flex-col">
+          <main className="flex-1 w-full">
+            {children}
+          </main>
+        </SidebarInset>
+      </>
+    )
+  }
+
+  // Regular layout for non-day pages
   return (
     <>
       {/* Desktop Sidebar */}
