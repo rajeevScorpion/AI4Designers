@@ -45,6 +45,7 @@ export default function QuizSectionExample() {
     <QuizSection
       quiz={mockQuiz}
       isCompleted={false}
+      isAccessible={true}
       onQuizComplete={(quizId, score) => console.log(`Quiz ${quizId} completed with score: ${score}%`)}
       onQuizRetake={(quizId) => console.log(`Quiz ${quizId} retaken`)}
     />

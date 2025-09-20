@@ -11,17 +11,18 @@ interface ClickableProgressProps {
   currentPageCompleted: boolean
   onSectionClick: (sectionIndex: number) => void
   unlockedSections: number[]
+  sectionCompletionStatus?: boolean[] // Array indicating if each section is truly completed (including 100% quiz score)
   className?: string
 }
 
 export const ClickableProgress = React.forwardRef<
   HTMLDivElement,
   ClickableProgressProps
->(({ value, sections, completedSections, currentPage, currentPageCompleted, onSectionClick, unlockedSections, className }, ref) => {
+>(({ value, sections, completedSections, currentPage, currentPageCompleted, onSectionClick, unlockedSections, sectionCompletionStatus, className }, ref) => {
   const sectionWidth = 100 / sections
   const segments = Array.from({ length: sections }, (_, i) => ({
     index: i,
-    isCompleted: i < completedSections.length,
+    isCompleted: sectionCompletionStatus ? sectionCompletionStatus[i] : i < completedSections.length,
     isCurrent: i === currentPage,
     isUnlocked: unlockedSections.includes(i),
     width: sectionWidth

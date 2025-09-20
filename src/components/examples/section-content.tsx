@@ -24,6 +24,7 @@ export default function SectionContentExample() {
     <SectionContent
       section={mockSection}
       isCompleted={false}
+      isAccessible={true}
       onMarkComplete={(sectionId) => console.log(`Completed section: ${sectionId}`)}
     />
   )

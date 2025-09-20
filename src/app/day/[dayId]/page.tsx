@@ -9,7 +9,6 @@ import { SectionContent } from "@/components/section-content"
 import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
 import { TabbedVideoSection } from "@/components/tabbed-video-section"
-import { DayStickyNav } from "@/components/day-sticky-nav"
 import { ClickableProgress } from "@/components/ui/clickable-progress"
 import { Header } from "@/components/header"
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
@@ -113,9 +112,14 @@ export default function Day({ params }: DayProps) {
 
   // Check if all sections on current page are completed
   const currentPageSections = currentSections.map(section => section.id)
-  const currentPageCompleted = currentPageSections.every(sectionId =>
-    completedSections.includes(sectionId)
-  )
+  const currentPageCompleted = currentPageSections.every(sectionId => {
+    // For quiz sections, also check if score is 100%
+    if (currentSections[0]?.type === 'quiz' && currentSections[0]?.quiz) {
+      const quizScore = quizScores[sectionId]
+      return completedSections.includes(sectionId) && quizScore === 100
+    }
+    return completedSections.includes(sectionId)
+  })
 
   const handleSectionComplete = async (sectionId: string) => {
     // Authentication removed - static demo only
@@ -189,6 +193,19 @@ export default function Day({ params }: DayProps) {
   const isFinalSection = isFinalPage && currentSections.length === 1
   const allSectionsCompleted = checkAllSectionsCompleted()
 
+  // Check if current section is a quiz with 100% score to determine if we should show "Next Day"
+  const shouldShowNextDay = () => {
+    if (!isFinalSection) return false
+
+    const currentSection = currentSections[0]
+    if (currentSection?.type === 'quiz' && currentSection.quiz) {
+      const quizScore = quizScores[currentSection.id]
+      return quizScore === 100
+    }
+
+    return allSectionsCompleted
+  }
+
   const goToNextPage = () => {
     if (currentPage < totalPages - 1 && unlockedSections.includes(currentPage + 1)) {
       setCurrentPage(currentPage + 1)
@@ -251,7 +268,32 @@ export default function Day({ params }: DayProps) {
 
   const calculateProgress = () => {
     if (dayData.sections.length === 0) return 0
+
+    // Check if the current section is a quiz with 100% score
+    const currentSection = currentSections[0]
+    if (currentSection?.type === 'quiz' && currentSection.quiz) {
+      const quizScore = quizScores[currentSection.id]
+      if (quizScore === 100) {
+        return 100 // Fill progress bar completely when quiz is 100% complete
+      }
+    }
+
     return Math.round((completedSections.length / dayData.sections.length) * 100)
+  }
+
+  // Calculate section completion status including 100% quiz requirement
+  const getSectionCompletionStatus = () => {
+    return dayData.sections.map((section, index) => {
+      const isCompleted = completedSections.includes(section.id)
+
+      // For quiz sections, also check if score is 100%
+      if (section.type === 'quiz' && section.quiz) {
+        const quizScore = quizScores[section.id]
+        return isCompleted && quizScore === 100
+      }
+
+      return isCompleted
+    })
   }
 
   if (!dayData.sections.length) {
@@ -273,17 +315,8 @@ export default function Day({ params }: DayProps) {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <DayStickyNav
-        dayId={dayId}
-        title={dayData.title}
-        estimatedTime={dayData.estimatedTime}
-        sectionsCount={dayData.sections.length}
-        completedSections={completedSections}
-        progress={calculateProgress()}
-        isAuthenticated={false}
-      />
-
-      <div className="container mx-auto px-4 py-8 pt-24 smooth-scroll-container">
+  
+      <div className="container mx-auto px-4 py-8 smooth-scroll-container">
         <div className="max-w-4xl mx-auto content-fade-in">
           {/* Auth Disabled Notice */}
           <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200 mb-6">
@@ -295,15 +328,24 @@ export default function Day({ params }: DayProps) {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/')}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Home
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push('/')}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Home
+                </Button>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Day {dayId} of 5</span>
+                  <span>•</span>
+                  <span>{dayData.sections.length} sections</span>
+                  <span>•</span>
+                  <span>{completedSections.length} completed</span>
+                </div>
+              </div>
               <Badge variant="secondary">
                 {dayData.estimatedTime}
               </Badge>
@@ -331,6 +373,7 @@ export default function Day({ params }: DayProps) {
                     currentPageCompleted={currentPageCompleted}
                     onSectionClick={handleSectionClick}
                     unlockedSections={unlockedSections}
+                    sectionCompletionStatus={getSectionCompletionStatus()}
                     className="h-2"
                   />
                 </div>
@@ -404,13 +447,23 @@ export default function Day({ params }: DayProps) {
               Page {currentPage + 1} of {totalPages}
             </div>
 
-            <Button
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages - 1 || !unlockedSections.includes(currentPage + 1)}
-            >
-              Next
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
+            {shouldShowNextDay() ? (
+              <Button
+                onClick={handleNextDay}
+                className="flex items-center gap-2"
+              >
+                Next Day
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            ) : (
+              <Button
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages - 1 || !unlockedSections.includes(currentPage + 1)}
+              >
+                Next
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
           </div>
         </div>
       </div>

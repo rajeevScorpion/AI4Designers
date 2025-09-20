@@ -100,6 +100,7 @@ export function SlideViewer({
           <SectionContent
             section={currentSection}
             isCompleted={isCurrentSlideCompleted}
+            isAccessible={true}
             onMarkComplete={onSectionComplete}
           />
         )}
@@ -108,6 +109,7 @@ export function SlideViewer({
           <SectionContent
             section={currentSection}
             isCompleted={isCurrentSlideCompleted}
+            isAccessible={true}
             onMarkComplete={onSectionComplete}
           />
         )}
@@ -117,6 +119,7 @@ export function SlideViewer({
             activity={currentSection.activity}
             sectionId={currentSection.id}
             isCompleted={isCurrentSlideCompleted}
+            isAccessible={true}
             onMarkComplete={onSectionComplete}
           />
         )}
@@ -125,6 +128,7 @@ export function SlideViewer({
           <QuizSection
             quiz={currentSection.quiz}
             isCompleted={isCurrentSlideCompleted}
+            isAccessible={true}
             score={quizScores[currentSection.quiz.id]}
             onQuizComplete={onQuizComplete}
             onQuizRetake={onQuizRetake || (() => {})}

@@ -75,7 +75,7 @@ export function QuizSection({ quiz, isCompleted, isAccessible, score, onQuizComp
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-grey-500" />
-            <h3 className="text-lg font-semibold text-grey-600">{quiz.title}</h3>
+            <h3 className="text-lg font-semibold text-grey-600">Knowledge Check</h3>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-grey-500 rounded-full flex items-center justify-center">
@@ -103,6 +103,7 @@ export function QuizSection({ quiz, isCompleted, isAccessible, score, onQuizComp
       (submittedAnswers[q.id] ?? answers[q.id]) === q.correctAnswer
     ).length
     const finalScore = score ?? Math.round((correctAnswers / quiz.questions.length) * 100)
+    const isPerfectScore = finalScore === 100
 
     return (
       <TooltipProvider>
@@ -160,12 +161,14 @@ export function QuizSection({ quiz, isCompleted, isAccessible, score, onQuizComp
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-between items-center pt-4 border-t">
+        <div className="flex justify-start items-center pt-4 border-t">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               onClick={handleRetake}
+              disabled={isPerfectScore}
               data-testid="button-quiz-retake"
+              className={isPerfectScore ? "opacity-50 cursor-not-allowed" : ""}
             >
               Retake Quiz
             </Button>
@@ -180,18 +183,6 @@ export function QuizSection({ quiz, isCompleted, isAccessible, score, onQuizComp
               </TooltipContent>
             </Tooltip>
           </div>
-
-          {isFinalSection && (
-            <Button
-              onClick={onNextDay}
-              disabled={!allSectionsCompleted}
-              className="flex items-center gap-2"
-              data-testid="button-next-day"
-            >
-              Next Day
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          )}
         </div>
       </Card>
       </TooltipProvider>
