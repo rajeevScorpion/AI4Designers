@@ -86,6 +86,7 @@ export default function SlideViewerExample() {
       <SlideViewer
         sections={mockSections}
         dayTitle="Introduction to AI"
+        dayId={1}
         onSectionComplete={(sectionId) => console.log(`Section ${sectionId} completed`)}
         onQuizComplete={(quizId, score) => console.log(`Quiz ${quizId} completed with score: ${score}%`)}
         completedSections={[]}

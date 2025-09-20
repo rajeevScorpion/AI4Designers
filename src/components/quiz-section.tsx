@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label"
 import { CheckCircle, Brain, AlertCircle, Award, Info, ArrowRight } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Quiz } from "@shared/schema"
+import { useCourse } from "@/contexts/CourseContext"
 
 interface QuizSectionProps {
   quiz: Quiz
+  dayId?: number
   isCompleted: boolean
   isAccessible: boolean
   score?: number
@@ -20,11 +22,24 @@ interface QuizSectionProps {
   onNextDay?: () => void
 }
 
-export function QuizSection({ quiz, isCompleted, isAccessible, score, onQuizComplete, onQuizRetake, isFinalSection = false, allSectionsCompleted = false, onNextDay }: QuizSectionProps) {
+export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQuizComplete, onQuizRetake, isFinalSection = false, allSectionsCompleted = false, onNextDay }: QuizSectionProps) {
+  const { updateQuizScore, getDayProgress, isLoading } = useCourse()
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [showResults, setShowResults] = useState(isCompleted)
   const [submittedAnswers, setSubmittedAnswers] = useState<Record<string, number>>({})
+
+  // Load saved answers if available and dayId is provided
+  useEffect(() => {
+    if (dayId && !isLoading) {
+      const dayProgress = getDayProgress(dayId)
+      if (dayProgress) {
+        // We could potentially restore quiz answers here in the future
+        // For now, we just use the completion state
+        setShowResults(isCompleted)
+      }
+    }
+  }, [dayId, isCompleted, getDayProgress, isLoading])
 
   const handleAnswerChange = (questionId: string, answer: string) => {
     setAnswers(prev => ({
@@ -52,7 +67,12 @@ export function QuizSection({ quiz, isCompleted, isAccessible, score, onQuizComp
 
     setSubmittedAnswers(answers)
     setShowResults(true)
-    onQuizComplete(quiz.id, finalScore)
+
+    // Save to context if dayId is provided
+    if (dayId) {
+      updateQuizScore(dayId, quiz.id, finalScore)
+    }
+    onQuizComplete?.(quiz.id, finalScore)
   }
 
   const handleRetake = () => {

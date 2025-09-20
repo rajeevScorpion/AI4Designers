@@ -19,6 +19,7 @@ import { courseData } from "@shared/courseData"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { LoginModal } from "@/components/login-modal"
 import { smoothScrollToTop } from "@/lib/smooth-scroll"
+import { useCourse } from "@/contexts/CourseContext"
 
 interface DayProps {
   params: {
@@ -31,12 +32,24 @@ export default function Day({ params }: DayProps) {
   const searchParams = useSearchParams()
   const dayId = parseInt(params.dayId)
 
-  const [completedSections, setCompletedSections] = useState<string[]>([])
-  const [quizScores, setQuizScores] = useState<Record<string, number>>({})
+  const {
+    userProgress,
+    updateSectionCompletion,
+    updateQuizScore,
+    updateSessionState,
+    getDayProgress,
+    sessionState,
+    isLoading
+  } = useCourse()
+
   const [currentPage, setCurrentPage] = useState(0)
-  const [completedDays, setCompletedDays] = useState<number[]>([])
   const [showLoginModal, setShowLoginModal] = useState(false)
   const { celebrateCompletion, smallCelebration } = useConfetti()
+
+  // Get progress data from context
+  const dayProgress = getDayProgress(dayId)
+  const completedSections = dayProgress?.completedSections || []
+  const quizScores = dayProgress?.quizScores || {}
 
   // Handle anchor links
   useEffect(() => {
@@ -53,15 +66,16 @@ export default function Day({ params }: DayProps) {
 
   // Show login modal when navigating to a new day (track last seen day)
   useEffect(() => {
-    const lastSeenDay = sessionStorage.getItem('lastSeenDay')
-    if (lastSeenDay !== dayId.toString()) {
+    const lastSeenDay = sessionState.currentDay
+    if (lastSeenDay !== dayId) {
       // Add a small delay to ensure the modal appears after page load
       const timer = setTimeout(() => {
         setShowLoginModal(true)
+        updateSessionState({ currentDay: dayId })
       }, 100)
       return () => clearTimeout(timer)
     }
-  }, [dayId])
+  }, [dayId, sessionState.currentDay, updateSessionState])
 
   // Helper functions for day data
   const getDayTitle = (dayId: number) => {
@@ -91,8 +105,7 @@ export default function Day({ params }: DayProps) {
     return times[dayId - 1] || "60 minutes"
   }
 
-  // Static demo data - no authentication
-  const isLoading = false
+  // Loading state from context
 
   // Use real course data
   const dayData: CourseDay = {
@@ -122,52 +135,27 @@ export default function Day({ params }: DayProps) {
   })
 
   const handleSectionComplete = async (sectionId: string) => {
-    // Authentication removed - static demo only
     try {
-      const newCompletedSections = [...completedSections]
-      if (!newCompletedSections.includes(sectionId)) {
-        newCompletedSections.push(sectionId)
-
-        // Trigger confetti animation
-        smallCelebration()
-      }
-
-      // Update local state only - no backend persistence
-      setCompletedSections(newCompletedSections)
-
-      console.log('Section completion tracking disabled - authentication removed')
+      updateSectionCompletion(dayId, sectionId, true)
+      smallCelebration()
     } catch (error) {
       console.error('Error updating progress:', error)
     }
   }
 
   const handleQuizComplete = async (quizId: string, score: number) => {
-    // Authentication removed - static demo only
     try {
-      const newQuizScores = { ...quizScores, [quizId]: score }
-      setQuizScores(newQuizScores)
-
-      // Trigger confetti for quiz completion
+      updateQuizScore(dayId, quizId, score)
       smallCelebration()
-
-      console.log('Quiz completion tracking disabled - authentication removed')
     } catch (error) {
       console.error('Error submitting quiz:', error)
     }
   }
 
   const handleQuizRetake = async (quizId: string) => {
-    // Authentication removed - static demo only
     try {
-      // Remove quiz score and mark as incomplete
-      const newQuizScores = { ...quizScores }
-      delete newQuizScores[quizId]
-
-      setQuizScores(newQuizScores)
-
-      // Remove from completed sections
-      setCompletedSections(prev => prev.filter(id => id !== quizId))
-      console.log('Quiz retake tracking disabled - authentication removed')
+      updateQuizScore(dayId, quizId, 0)
+      updateSectionCompletion(dayId, quizId, false)
     } catch (error) {
       console.error('Error retaking quiz:', error)
     }
@@ -472,7 +460,8 @@ export default function Day({ params }: DayProps) {
         isOpen={showLoginModal}
         onClose={() => {
           setShowLoginModal(false)
-          sessionStorage.setItem('lastSeenDay', dayId.toString())
+          // Update session state when modal is closed
+          updateSessionState({ currentDay: dayId })
         }}
       />
     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -8,31 +8,60 @@ import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
 import { ChevronLeft, ChevronRight, CheckCircle, BookOpen } from "lucide-react"
 import type { CourseSection } from "@shared/schema"
+import { useCourse } from "@/contexts/CourseContext"
 
 interface SlideViewerProps {
   sections: CourseSection[]
   dayTitle: string
-  onSectionComplete: (sectionId: string) => void
-  onQuizComplete: (quizId: string, score: number) => void
+  dayId: number
+  onSectionComplete?: (sectionId: string) => void
+  onQuizComplete?: (quizId: string, score: number) => void
   onQuizRetake?: (quizId: string) => void
-  completedSections: string[]
-  quizScores: Record<string, number>
+  completedSections?: string[]
+  quizScores?: Record<string, number>
 }
 
 export function SlideViewer({
   sections,
   dayTitle,
+  dayId,
   onSectionComplete,
   onQuizComplete,
   onQuizRetake,
-  completedSections,
-  quizScores
+  completedSections: propCompletedSections,
+  quizScores: propQuizScores
 }: SlideViewerProps) {
+  const { updateCurrentSlide, updateSectionCompletion, updateQuizScore, getDayProgress, isLoading } = useCourse()
   const [currentSlide, setCurrentSlide] = useState(0)
+
+  // Load saved slide position on mount
+  useEffect(() => {
+    if (!isLoading) {
+      const dayProgress = getDayProgress(dayId)
+      if (dayProgress && dayProgress.currentSlide !== undefined) {
+        setCurrentSlide(Math.min(dayProgress.currentSlide, sections.length - 1))
+      }
+    }
+  }, [dayId, sections.length, getDayProgress, isLoading])
+
+  // Save slide position when it changes
+  useEffect(() => {
+    if (!isLoading && sections.length > 0) {
+      updateCurrentSlide(dayId, currentSlide)
+    }
+  }, [currentSlide, dayId, sections.length, updateCurrentSlide, isLoading])
+
+  // Use context data if available, otherwise fall back to props
+  const dayProgress = getDayProgress(dayId)
+  const contextCompletedSections = dayProgress?.completedSections || []
+  const contextQuizScores = dayProgress?.quizScores || {}
+
+  const completedSections = propCompletedSections || contextCompletedSections
+  const quizScores = propQuizScores || contextQuizScores
 
   const totalSlides = sections.length
   const progress = (currentSlide / Math.max(totalSlides - 1, 1)) * 100
-  const completedSlides = sections.slice(0, currentSlide + 1).filter(section => 
+  const completedSlides = sections.slice(0, currentSlide + 1).filter(section =>
     completedSections.includes(section.id)
   ).length
 
@@ -46,6 +75,16 @@ export function SlideViewer({
     if (currentSlide < totalSlides - 1) {
       setCurrentSlide(currentSlide + 1)
     }
+  }
+
+  const handleSectionComplete = (sectionId: string) => {
+    updateSectionCompletion(dayId, sectionId, true)
+    onSectionComplete?.(sectionId)
+  }
+
+  const handleQuizComplete = (quizId: string, score: number) => {
+    updateQuizScore(dayId, quizId, score)
+    onQuizComplete?.(quizId, score)
   }
 
   const canGoNext = currentSlide < totalSlides - 1
@@ -101,7 +140,7 @@ export function SlideViewer({
             section={currentSection}
             isCompleted={isCurrentSlideCompleted}
             isAccessible={true}
-            onMarkComplete={onSectionComplete}
+            onMarkComplete={handleSectionComplete}
           />
         )}
 
@@ -110,7 +149,7 @@ export function SlideViewer({
             section={currentSection}
             isCompleted={isCurrentSlideCompleted}
             isAccessible={true}
-            onMarkComplete={onSectionComplete}
+            onMarkComplete={handleSectionComplete}
           />
         )}
 
@@ -120,17 +159,18 @@ export function SlideViewer({
             sectionId={currentSection.id}
             isCompleted={isCurrentSlideCompleted}
             isAccessible={true}
-            onMarkComplete={onSectionComplete}
+            onMarkComplete={handleSectionComplete}
           />
         )}
 
         {currentSection?.type === 'quiz' && currentSection.quiz && (
           <QuizSection
             quiz={currentSection.quiz}
+            dayId={dayId}
             isCompleted={isCurrentSlideCompleted}
             isAccessible={true}
             score={quizScores[currentSection.quiz.id]}
-            onQuizComplete={onQuizComplete}
+            onQuizComplete={handleQuizComplete}
             onQuizRetake={onQuizRetake || (() => {})}
           />
         )}

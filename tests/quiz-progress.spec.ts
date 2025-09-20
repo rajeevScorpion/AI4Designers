@@ -1,17 +1,26 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Quiz Progress Bar', () => {
+  // Note: These tests need to be updated to work with the new localStorage persistence system
+  // The tests should now simulate localStorage data for user progress rather than just sessionStorage
   test('should show brown color when quiz is completed with 100% score', async ({ page }) => {
-    // Clear sessionStorage and navigate to day 1
+    // Clear localStorage and sessionStorage for fresh test state
     await page.addInitScript(() => {
+      localStorage.clear();
       sessionStorage.clear();
-      sessionStorage.setItem('lastSeenDay', '1');
+
+      // Initialize session state
+      sessionStorage.setItem('ai4designers_session', JSON.stringify({
+        showLoginModal: false,
+        currentDay: 1,
+        navigationHistory: []
+      }));
     });
 
     await page.goto('/day/1');
     await page.waitForSelector('h1');
 
-    // Close login modal if it appears
+    // Close login modal if it appears (session state may still trigger it)
     const modalBackdrop = page.locator('.fixed.inset-0.z-50.flex');
     if (await modalBackdrop.isVisible()) {
       await page.click('text=Just Browsing!');
@@ -107,14 +116,21 @@ test.describe('Quiz Progress Bar', () => {
     // This test would require more complex setup to achieve 100% score
     // For now, we'll just verify the button structure
     await page.addInitScript(() => {
+      localStorage.clear();
       sessionStorage.clear();
-      sessionStorage.setItem('lastSeenDay', '1');
+
+      // Initialize session state
+      sessionStorage.setItem('ai4designers_session', JSON.stringify({
+        showLoginModal: false,
+        currentDay: 1,
+        navigationHistory: []
+      }));
     });
 
     await page.goto('/day/1');
     await page.waitForSelector('h1');
 
-    // Close login modal if it appears
+    // Close login modal if it appears (session state may still trigger it)
     const modalBackdrop = page.locator('.fixed.inset-0.z-50.flex');
     if (await modalBackdrop.isVisible()) {
       await page.click('text=Just Browsing!');
