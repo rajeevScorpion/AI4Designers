@@ -68,31 +68,7 @@ export function DayStickyNav({
           </div>
         </div>
 
-        {/* Authentication Prompt for Non-Authenticated Users */}
-        {!isAuthenticated && (
-          <div className="mt-3 pt-3 border-t border-border">
-            <div className="flex items-center justify-between gap-2 bg-primary/5 rounded-lg p-2">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                  <span className="text-xs font-medium text-primary">!</span>
-                </div>
-                <div className="text-xs">
-                  <p className="font-medium text-primary">Sign in to save your progress</p>
-                  <p className="text-xs text-muted-foreground">Progress lost when tab closes</p>
-                </div>
-              </div>
-              <Button
-                onClick={() => router.push('/signin')}
-                size="sm"
-                variant="outline"
-                className="text-xs h-7 px-3"
-              >
-                Sign In
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
     </div>
   )
 }

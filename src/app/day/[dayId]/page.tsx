@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import type { CourseDay } from "@shared/schema"
 import { courseData } from "@shared/courseData"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { LoginModal } from "@/components/login-modal"
 import { smoothScrollToTop } from "@/lib/smooth-scroll"
 
 interface DayProps {
@@ -35,6 +36,7 @@ export default function Day({ params }: DayProps) {
   const [quizScores, setQuizScores] = useState<Record<string, number>>({})
   const [currentPage, setCurrentPage] = useState(0)
   const [completedDays, setCompletedDays] = useState<number[]>([])
+  const [showLoginModal, setShowLoginModal] = useState(false)
   const { celebrateCompletion, smallCelebration } = useConfetti()
 
   // Handle anchor links
@@ -49,6 +51,18 @@ export default function Day({ params }: DayProps) {
       }
     }
   }, [searchParams])
+
+  // Show login modal when navigating to a new day (track last seen day)
+  useEffect(() => {
+    const lastSeenDay = sessionStorage.getItem('lastSeenDay')
+    if (lastSeenDay !== dayId.toString()) {
+      // Add a small delay to ensure the modal appears after page load
+      const timer = setTimeout(() => {
+        setShowLoginModal(true)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [dayId])
 
   // Helper functions for day data
   const getDayTitle = (dayId: number) => {
@@ -400,6 +414,14 @@ export default function Day({ params }: DayProps) {
           </div>
         </div>
       </div>
+
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false)
+          sessionStorage.setItem('lastSeenDay', dayId.toString())
+        }}
+      />
     </div>
   )
 }
