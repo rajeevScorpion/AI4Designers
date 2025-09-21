@@ -17,63 +17,63 @@ const mockCourseDays = [
     id: 1,
     title: "Introduction to AI",
     sections: [
-      { id: "intro", title: "What is AI?", type: "content" as const, isCompleted: false },
-      { id: "history", title: "History of AI", type: "content" as const, isCompleted: false },
-      { id: "types", title: "Types of AI", type: "content" as const, isCompleted: false },
-      { id: "activity1", title: "AI in Daily Life", type: "activity" as const, isCompleted: false },
-      { id: "quiz1", title: "Day 1 Quiz", type: "quiz" as const, isCompleted: false }
+      { id: "day1-intro", title: "What is Artificial Intelligence?", type: "content" as const, isCompleted: false },
+      { id: "day1-history", title: "A Brief History of AI", type: "content" as const, isCompleted: false },
+      { id: "day1-video", title: "Essential AI Concepts Explained", type: "video" as const, isCompleted: false },
+      { id: "day1-activity", title: "Explore AI Tools", type: "activity" as const, isCompleted: false },
+      { id: "day1-quiz", title: "Day 1 Knowledge Check", type: "quiz" as const, isCompleted: false }
     ],
     isCompleted: false,
     progress: 0
   },
   {
     id: 2,
-    title: "Machine Learning Basics",
+    title: "Types of AI and How They Work",
     sections: [
-      { id: "ml-intro", title: "What is Machine Learning?", type: "content" as const, isCompleted: false },
-      { id: "supervised", title: "Supervised Learning", type: "content" as const, isCompleted: false },
-      { id: "unsupervised", title: "Unsupervised Learning", type: "content" as const, isCompleted: false },
-      { id: "activity2", title: "ML Algorithm Identification", type: "activity" as const, isCompleted: false },
-      { id: "quiz2", title: "Day 2 Quiz", type: "quiz" as const, isCompleted: false }
+      { id: "day2-intro", title: "Types of AI and How They Work", type: "content" as const, isCompleted: false },
+      { id: "day2-generative", title: "Generative AI Deep Dive", type: "content" as const, isCompleted: false },
+      { id: "day2-video", title: "Understanding Neural Networks & Machine Learning", type: "video" as const, isCompleted: false },
+      { id: "day2-activity", title: "AI Image Generation Practice", type: "activity" as const, isCompleted: false },
+      { id: "day2-quiz", title: "Day 2 Knowledge Check", type: "quiz" as const, isCompleted: false }
     ],
     isCompleted: false,
     progress: 0
   },
   {
     id: 3,
-    title: "Neural Networks & Deep Learning",
+    title: "AI Tools for Designers",
     sections: [
-      { id: "nn-intro", title: "Introduction to Neural Networks", type: "content" as const, isCompleted: false },
-      { id: "dl-basics", title: "Deep Learning Fundamentals", type: "content" as const, isCompleted: false },
-      { id: "cnn", title: "Convolutional Neural Networks", type: "content" as const, isCompleted: false },
-      { id: "activity3", title: "Build a Simple NN", type: "activity" as const, isCompleted: false },
-      { id: "quiz3", title: "Day 3 Quiz", type: "quiz" as const, isCompleted: false }
+      { id: "day3-intro", title: "AI Tools for Designers", type: "content" as const, isCompleted: false },
+      { id: "day3-workflows", title: "AI-Enhanced Design Workflows", type: "content" as const, isCompleted: false },
+      { id: "day3-video", title: "AI Tools for Creative Design", type: "video" as const, isCompleted: false },
+      { id: "day3-activity", title: "Build an AI-Enhanced Workflow", type: "activity" as const, isCompleted: false },
+      { id: "day3-quiz", title: "Day 3 Knowledge Check", type: "quiz" as const, isCompleted: false }
     ],
     isCompleted: false,
     progress: 0
   },
   {
     id: 4,
-    title: "AI in Design",
+    title: "Ethical AI and Responsible Design",
     sections: [
-      { id: "ai-design", title: "AI Tools for Designers", type: "content" as const, isCompleted: false },
-      { id: "generative", title: "Generative AI", type: "content" as const, isCompleted: false },
-      { id: "ethics", title: "AI Ethics & Bias", type: "content" as const, isCompleted: false },
-      { id: "activity4", title: "AI Design Challenge", type: "activity" as const, isCompleted: false },
-      { id: "quiz4", title: "Day 4 Quiz", type: "quiz" as const, isCompleted: false }
+      { id: "day4-intro", title: "Ethical AI and Responsible Design", type: "content" as const, isCompleted: false },
+      { id: "day4-guidelines", title: "Responsible AI Guidelines for Designers", type: "content" as const, isCompleted: false },
+      { id: "day4-video", title: "AI Ethics and Responsible Design", type: "video" as const, isCompleted: false },
+      { id: "day4-activity", title: "Create Your AI Ethics Framework", type: "activity" as const, isCompleted: false },
+      { id: "day4-quiz", title: "Day 4 Knowledge Check", type: "quiz" as const, isCompleted: false }
     ],
     isCompleted: false,
     progress: 0
   },
   {
     id: 5,
-    title: "Future of AI & Capstone",
+    title: "The Future of AI in Design",
     sections: [
-      { id: "future", title: "Future Trends in AI", type: "content" as const, isCompleted: false },
-      { id: "careers", title: "AI Careers in Design", type: "content" as const, isCompleted: false },
-      { id: "capstone", title: "Capstone Project", type: "activity" as const, isCompleted: false },
-      { id: "presentation", title: "Final Presentation", type: "activity" as const, isCompleted: false },
-      { id: "quiz5", title: "Day 5 Quiz", type: "quiz" as const, isCompleted: false }
+      { id: "day5-intro", title: "The Future of AI in Design", type: "content" as const, isCompleted: false },
+      { id: "day5-career", title: "Building an AI-Enhanced Career", type: "content" as const, isCompleted: false },
+      { id: "day5-video", title: "The Future of AI and Design", type: "video" as const, isCompleted: false },
+      { id: "day5-activity", title: "Design Your AI Learning Plan", type: "activity" as const, isCompleted: false },
+      { id: "day5-final-quiz", title: "Final Course Assessment", type: "quiz" as const, isCompleted: false }
     ],
     isCompleted: false,
     progress: 0

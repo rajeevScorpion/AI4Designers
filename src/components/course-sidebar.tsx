@@ -1,8 +1,10 @@
 // Removed sidebar imports since we're now using a sheet
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle, Circle, BookOpen, Brain, Wrench, Play } from "lucide-react"
+import { CheckCircle, Circle } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface CourseSidebarProps {
   days: Array<{
@@ -21,16 +23,21 @@ interface CourseSidebarProps {
 }
 
 export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
+  const pathname = usePathname()
+  const [currentDayFromUrl, setCurrentDayFromUrl] = useState<number | null>(null)
 
-  const getSectionIcon = (type: string) => {
-    switch (type) {
-      case 'content': return <BookOpen className="w-3 h-3" />
-      case 'activity': return <Wrench className="w-3 h-3" />
-      case 'quiz': return <Brain className="w-3 h-3" />
-      case 'video': return <Play className="w-3 h-3" />
-      default: return <Circle className="w-3 h-3" />
+  // Extract current day from URL path
+  useEffect(() => {
+    const dayMatch = pathname.match(/\/day\/(\d+)/)
+    if (dayMatch) {
+      setCurrentDayFromUrl(parseInt(dayMatch[1]))
+    } else {
+      setCurrentDayFromUrl(null)
     }
-  }
+  }, [pathname])
+
+  // Use URL-based current day, fall back to prop-based current day
+  const displayCurrentDay = currentDayFromUrl || currentDay
 
   return (
     <div data-testid="sidebar-course" className="space-y-6 h-full overflow-y-auto pt-6">
@@ -42,14 +49,14 @@ export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               {day.isCompleted ? (
-                <CheckCircle className="w-4 h-4 text-chart-3" />
+                <CheckCircle className="w-4 h-4 text-amber-200" />
               ) : (
                 <Circle className="w-4 h-4 text-muted-foreground" />
               )}
               <span className="font-medium">Day {day.id}</span>
             </div>
-            {day.id === currentDay && (
-              <Badge variant="default" className="text-xs">
+            {day.id === displayCurrentDay && (
+              <Badge variant="default" className="text-xs bg-amber-200 text-amber-900">
                 Current
               </Badge>
             )}
@@ -102,11 +109,12 @@ export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
                   }
                 }}
               >
-                {getSectionIcon(section.type)}
-                <span className="flex-1">{section.title}</span>
-                {section.isCompleted && (
-                  <CheckCircle className="w-4 h-4 text-chart-3 ml-2" />
+                {section.isCompleted ? (
+                  <CheckCircle className="w-4 h-4 text-amber-200" />
+                ) : (
+                  <Circle className="w-4 h-4 text-muted-foreground" />
                 )}
+                <span className="flex-1">{section.title}</span>
               </Link>
             ))}
           </div>
