@@ -10,7 +10,6 @@ import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
 import { TabbedVideoSection } from "@/components/tabbed-video-section"
 import { ClickableProgress } from "@/components/ui/clickable-progress"
-import { Header } from "@/components/header"
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
 import { useConfetti } from "@/hooks/use-confetti"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -20,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { LoginModal } from "@/components/login-modal"
 import { smoothScrollToTop } from "@/lib/smooth-scroll"
 import { useCourse } from "@/contexts/CourseContext"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface DayProps {
   params: {
@@ -31,6 +31,7 @@ export default function Day({ params }: DayProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const dayId = parseInt(params.dayId)
+  const { user } = useAuth()
 
   const {
     userProgress,
@@ -302,16 +303,8 @@ export default function Day({ params }: DayProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-  
       <div className="container mx-auto px-4 py-8 smooth-scroll-container">
         <div className="max-w-4xl mx-auto content-fade-in">
-          {/* Auth Disabled Notice */}
-          <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200 mb-6">
-            <AlertDescription>
-              Authentication has been disabled. This is now a static UI demonstration. Progress tracking is disabled.
-            </AlertDescription>
-          </Alert>
 
           {/* Header */}
           <div className="mb-8">

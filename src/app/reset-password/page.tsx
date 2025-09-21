@@ -30,10 +30,6 @@ function ResetPasswordContent() {
 
         <form onSubmit={handleResetPassword}>
           <CardContent className="space-y-4">
-            <div className="p-3 text-sm text-blue-500 bg-blue-50 rounded-md border border-blue-200">
-              Authentication has been disabled. This is now a static UI demonstration.
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="password">New Password</Label>
               <Input

@@ -1,0 +1,152 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - link "AI AI4Designers" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e10] [cursor=pointer]: AI
+          - generic [ref=e11] [cursor=pointer]: AI4Designers
+        - navigation [ref=e12]:
+          - link "Home" [ref=e13] [cursor=pointer]:
+            - /url: /
+          - generic "Sign in to access the course" [ref=e14]: Course
+      - generic [ref=e15]:
+        - button "Toggle theme" [ref=e16] [cursor=pointer]:
+          - img
+          - img
+          - generic [ref=e17] [cursor=pointer]: Toggle theme
+        - link "Sign In" [ref=e18] [cursor=pointer]:
+          - /url: /signin
+          - button "Sign In" [ref=e19] [cursor=pointer]
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: 5-Day Crash Course
+            - heading "AI Fundamentals for Designers" [level=1] [ref=e27]
+            - paragraph [ref=e28]: Master the essentials of AI and generative technology through hands-on learning designed specifically for first-year design students.
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - img [ref=e31]
+              - generic [ref=e34]: 4-6 hours total
+            - generic [ref=e35]:
+              - img [ref=e36]
+              - generic [ref=e38]: Interactive content
+            - generic [ref=e39]:
+              - img [ref=e40]
+              - generic [ref=e45]: Beginner friendly
+            - generic [ref=e46]:
+              - img [ref=e47]
+              - generic [ref=e50]: Practical activities
+          - generic [ref=e51]:
+            - button "Start Learning" [ref=e52] [cursor=pointer]:
+              - text: Start Learning
+              - img
+            - generic [ref=e54]: Sign in required to access the full course
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - heading "Course Curriculum" [level=2] [ref=e58]
+            - paragraph [ref=e59]: A structured 5-day journey through AI fundamentals, practical tools, and real-world applications for designers.
+          - generic [ref=e60]:
+            - generic [ref=e62] [cursor=pointer]:
+              - generic [ref=e64] [cursor=pointer]:
+                - img [ref=e65] [cursor=pointer]
+                - generic [ref=e67] [cursor=pointer]:
+                  - heading "Day 1" [level=3] [ref=e68] [cursor=pointer]
+                  - generic [ref=e69] [cursor=pointer]:
+                    - img [ref=e70] [cursor=pointer]
+                    - text: 30 min
+              - generic [ref=e73] [cursor=pointer]:
+                - heading "Introduction to AI & Design" [level=4] [ref=e74] [cursor=pointer]
+                - paragraph [ref=e75] [cursor=pointer]: Explore the fundamentals of AI and how it's transforming the design industry. Learn key concepts and terminology.
+              - button "Start Day" [ref=e77] [cursor=pointer]:
+                - text: Start Day
+                - img
+            - generic [ref=e79] [cursor=pointer]:
+              - generic [ref=e81] [cursor=pointer]:
+                - img [ref=e82] [cursor=pointer]
+                - generic [ref=e84] [cursor=pointer]:
+                  - heading "Day 2" [level=3] [ref=e85] [cursor=pointer]
+                  - generic [ref=e86] [cursor=pointer]:
+                    - img [ref=e87] [cursor=pointer]
+                    - text: 45 min
+              - generic [ref=e90] [cursor=pointer]:
+                - heading "Understanding AI Tools for Designers" [level=4] [ref=e91] [cursor=pointer]
+                - paragraph [ref=e92] [cursor=pointer]: Discover popular AI tools and platforms used by designers today. Get hands-on experience with leading platforms.
+              - button "Start Day" [ref=e94] [cursor=pointer]:
+                - text: Start Day
+                - img
+            - generic [ref=e96] [cursor=pointer]:
+              - generic [ref=e98] [cursor=pointer]:
+                - img [ref=e99] [cursor=pointer]
+                - generic [ref=e101] [cursor=pointer]:
+                  - heading "Day 3" [level=3] [ref=e102] [cursor=pointer]
+                  - generic [ref=e103] [cursor=pointer]:
+                    - img [ref=e104] [cursor=pointer]
+                    - text: 60 min
+              - generic [ref=e107] [cursor=pointer]:
+                - heading "Generative AI for Visual Design" [level=4] [ref=e108] [cursor=pointer]
+                - paragraph [ref=e109] [cursor=pointer]: Learn how to use AI for creating images, graphics, and visual content. Master prompt engineering techniques.
+              - button "Start Day" [ref=e111] [cursor=pointer]:
+                - text: Start Day
+                - img
+            - generic [ref=e113] [cursor=pointer]:
+              - generic [ref=e115] [cursor=pointer]:
+                - img [ref=e116] [cursor=pointer]
+                - generic [ref=e118] [cursor=pointer]:
+                  - heading "Day 4" [level=3] [ref=e119] [cursor=pointer]
+                  - generic [ref=e120] [cursor=pointer]:
+                    - img [ref=e121] [cursor=pointer]
+                    - text: 50 min
+              - generic [ref=e124] [cursor=pointer]:
+                - heading "AI-Powered Design Workflows" [level=4] [ref=e125] [cursor=pointer]
+                - paragraph [ref=e126] [cursor=pointer]: Integrate AI into your design process for enhanced productivity. Build efficient AI-assisted workflows.
+              - button "Start Day" [ref=e128] [cursor=pointer]:
+                - text: Start Day
+                - img
+            - generic [ref=e130] [cursor=pointer]:
+              - generic [ref=e132] [cursor=pointer]:
+                - img [ref=e133] [cursor=pointer]
+                - generic [ref=e135] [cursor=pointer]:
+                  - heading "Day 5" [level=3] [ref=e136] [cursor=pointer]
+                  - generic [ref=e137] [cursor=pointer]:
+                    - img [ref=e138] [cursor=pointer]
+                    - text: 40 min
+              - generic [ref=e141] [cursor=pointer]:
+                - heading "Future of AI in Design" [level=4] [ref=e142] [cursor=pointer]
+                - paragraph [ref=e143] [cursor=pointer]: Explore emerging trends and prepare for the future of AI-assisted design. Ethics and best practices.
+              - button "Start Day" [ref=e145] [cursor=pointer]:
+                - text: Start Day
+                - img
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - heading "What You'll Learn" [level=2] [ref=e150]
+            - paragraph [ref=e151]: Build practical AI skills that you can immediately apply to your design projects.
+          - generic [ref=e152]:
+            - generic [ref=e153]:
+              - heading "AI Fundamentals" [level=3] [ref=e154]
+              - paragraph [ref=e155]: Understand core AI concepts, machine learning, and how AI tools work behind the scenes.
+            - generic [ref=e156]:
+              - heading "Popular AI Platforms" [level=3] [ref=e157]
+              - paragraph [ref=e158]: Get hands-on with ChatGPT, Midjourney, Figma AI, and other essential design tools.
+            - generic [ref=e159]:
+              - heading "Generative Design" [level=3] [ref=e160]
+              - paragraph [ref=e161]: Master AI-powered image generation, prompt engineering, and creative content creation.
+            - generic [ref=e162]:
+              - heading "Design Workflows" [level=3] [ref=e163]
+              - paragraph [ref=e164]: Learn to integrate AI seamlessly into your existing design process and workflows.
+            - generic [ref=e165]:
+              - heading "Industry Applications" [level=3] [ref=e166]
+              - paragraph [ref=e167]: Explore real-world use cases and see how professionals use AI in their design work.
+            - generic [ref=e168]:
+              - heading "Future Trends" [level=3] [ref=e169]
+              - paragraph [ref=e170]: Stay ahead with insights into emerging AI technologies and their impact on design.
+  - generic [ref=e171]:
+    - img [ref=e173]
+    - button "Open Tanstack query devtools" [ref=e221] [cursor=pointer]:
+      - img [ref=e222] [cursor=pointer]
+  - alert [ref=e270]
+```

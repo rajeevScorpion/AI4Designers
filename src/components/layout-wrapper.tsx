@@ -1,10 +1,13 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { Header } from './header'
 import { CourseSidebar } from './course-sidebar'
 import { useSidebar } from '@/components/ui/sidebar'
 import { SidebarInset, Sidebar } from '@/components/ui/sidebar'
+import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/button'
 
 // Mock course data - this should come from an API or context
 const mockCourseDays = [
@@ -81,45 +84,29 @@ interface LayoutWrapperProps {
 
 export function LayoutWrapper({ children }: LayoutWrapperProps) {
   const pathname = usePathname()
+  const { user, loading } = useAuth()
   // Use mock data without authentication
   const courseDays = mockCourseDays
   const { open, setOpen, openMobile, setOpenMobile, isMobile } = useSidebar()
 
-  // Check if we're on a day page to avoid duplicate navigation
-  const isDayPage = pathname.startsWith('/day/')
+  // Check if we're on an auth page to avoid showing sidebar
+  const isAuthPage = pathname.startsWith('/signin') || pathname.startsWith('/signup')
 
-  // For day pages, we need a different layout to allow sticky nav to work properly
-  if (isDayPage) {
-    return (
-      <>
-        {/* Desktop Sidebar */}
+  // Only show sidebar for authenticated users on non-auth pages
+  const showSidebar = user && !isAuthPage
+
+  // Layout for all pages
+  return (
+    <>
+      {/* Desktop Sidebar - only for authenticated users */}
+      {showSidebar && (
         <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
           <CourseSidebar
             days={courseDays}
             currentDay={1}
           />
         </Sidebar>
-
-        {/* Main content area - include Header for day pages too */}
-        <SidebarInset className="flex flex-col">
-          <main className="flex-1 w-full">
-            {children}
-          </main>
-        </SidebarInset>
-      </>
-    )
-  }
-
-  // Regular layout for non-day pages
-  return (
-    <>
-      {/* Desktop Sidebar */}
-      <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
-        <CourseSidebar
-          days={courseDays}
-          currentDay={1}
-        />
-      </Sidebar>
+      )}
 
       {/* Main content area with SidebarInset for proper centering */}
       <SidebarInset className="flex flex-col">

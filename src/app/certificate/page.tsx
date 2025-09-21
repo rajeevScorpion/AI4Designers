@@ -42,13 +42,7 @@ export default function Certificate() {
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Auth Disabled Notice */}
-        <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
-          <AlertDescription>
-            Authentication has been disabled. This is now a static UI demonstration. Certificate functionality is not available.
-          </AlertDescription>
-        </Alert>
-
+  
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Certificate of Completion</h1>

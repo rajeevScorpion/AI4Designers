@@ -262,7 +262,7 @@ export default function Home() {
 
     if (user) {
       // If user is authenticated, redirect to course content
-      router.push(`/course/day/${dayId}`)
+      router.push(`/day/${dayId}`)
     } else {
       // Show preview modal for non-authenticated users
       setSelectedDay(dayId)
@@ -275,7 +275,7 @@ export default function Home() {
 
     if (user) {
       // If user is authenticated, redirect to first day
-      router.push('/course/day/1')
+      router.push('/day/1')
     } else {
       // Show preview modal for non-authenticated users
       setSelectedDay(1)
@@ -341,9 +341,11 @@ export default function Home() {
                 Start Learning
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Authentication disabled - demo mode only</span>
-              </div>
+              {!user && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Sign in required to access the full course</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

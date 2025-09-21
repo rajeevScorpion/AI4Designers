@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, Chrome } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -21,8 +21,17 @@ function SignInContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [redirectTo, setRedirectTo] = useState('/profile')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { signInWithEmail } = useAuth()
+
+  useEffect(() => {
+    if (searchParams) {
+      const redirectToParam = searchParams.get('redirectTo')
+      setRedirectTo(redirectToParam || '/profile')
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,7 +45,7 @@ function SignInContent() {
       if (result.success) {
         setSuccess('Successfully signed in! Redirecting...')
         setTimeout(() => {
-          router.push('/profile')
+          router.push(redirectTo)
           router.refresh()
         }, 1500)
       } else {

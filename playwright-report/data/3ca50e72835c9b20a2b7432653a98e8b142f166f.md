@@ -1,0 +1,220 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - main:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - link:
+                - /url: /
+                - generic:
+                  - generic: AI
+                - generic: AI4Designers
+              - navigation:
+                - link:
+                  - /url: /
+                  - text: Home
+                - generic: Course
+            - generic:
+              - button:
+                - img
+                - generic: Toggle theme
+              - link:
+                - /url: /signin
+                - button: Sign In
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: 5-Day Crash Course
+                  - heading [level=1]: AI Fundamentals for Designers
+                  - paragraph: Master the essentials of AI and generative technology through hands-on learning designed specifically for first-year design students.
+                - generic:
+                  - generic:
+                    - img
+                    - generic: 4-6 hours total
+                  - generic:
+                    - img
+                    - generic: Interactive content
+                  - generic:
+                    - img
+                    - generic: Beginner friendly
+                  - generic:
+                    - img
+                    - generic: Practical activities
+                - generic:
+                  - button:
+                    - text: Start Learning
+                    - img
+                  - generic:
+                    - generic: Sign in required to access the full course
+          - generic:
+            - generic:
+              - generic:
+                - heading [level=2]: Course Curriculum
+                - paragraph: A structured 5-day journey through AI fundamentals, practical tools, and real-world applications for designers.
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                        - generic:
+                          - heading [level=3]: Day 1
+                          - generic:
+                            - img
+                            - text: 30 min
+                    - generic:
+                      - heading [level=4]: Introduction to AI & Design
+                      - paragraph: Explore the fundamentals of AI and how it's transforming the design industry. Learn key concepts and terminology.
+                    - generic:
+                      - button:
+                        - text: Start Day
+                        - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                        - generic:
+                          - heading [level=3]: Day 2
+                          - generic:
+                            - img
+                            - text: 45 min
+                    - generic:
+                      - heading [level=4]: Understanding AI Tools for Designers
+                      - paragraph: Discover popular AI tools and platforms used by designers today. Get hands-on experience with leading platforms.
+                    - generic:
+                      - button:
+                        - text: Start Day
+                        - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                        - generic:
+                          - heading [level=3]: Day 3
+                          - generic:
+                            - img
+                            - text: 60 min
+                    - generic:
+                      - heading [level=4]: Generative AI for Visual Design
+                      - paragraph: Learn how to use AI for creating images, graphics, and visual content. Master prompt engineering techniques.
+                    - generic:
+                      - button:
+                        - text: Start Day
+                        - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                        - generic:
+                          - heading [level=3]: Day 4
+                          - generic:
+                            - img
+                            - text: 50 min
+                    - generic:
+                      - heading [level=4]: AI-Powered Design Workflows
+                      - paragraph: Integrate AI into your design process for enhanced productivity. Build efficient AI-assisted workflows.
+                    - generic:
+                      - button:
+                        - text: Start Day
+                        - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                        - generic:
+                          - heading [level=3]: Day 5
+                          - generic:
+                            - img
+                            - text: 40 min
+                    - generic:
+                      - heading [level=4]: Future of AI in Design
+                      - paragraph: Explore emerging trends and prepare for the future of AI-assisted design. Ethics and best practices.
+                    - generic:
+                      - button:
+                        - text: Start Day
+                        - img
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - heading [level=2]: What You'll Learn
+                  - paragraph: Build practical AI skills that you can immediately apply to your design projects.
+                - generic:
+                  - generic:
+                    - heading [level=3]: AI Fundamentals
+                    - paragraph: Understand core AI concepts, machine learning, and how AI tools work behind the scenes.
+                  - generic:
+                    - heading [level=3]: Popular AI Platforms
+                    - paragraph: Get hands-on with ChatGPT, Midjourney, Figma AI, and other essential design tools.
+                  - generic:
+                    - heading [level=3]: Generative Design
+                    - paragraph: Master AI-powered image generation, prompt engineering, and creative content creation.
+                  - generic:
+                    - heading [level=3]: Design Workflows
+                    - paragraph: Learn to integrate AI seamlessly into your existing design process and workflows.
+                  - generic:
+                    - heading [level=3]: Industry Applications
+                    - paragraph: Explore real-world use cases and see how professionals use AI in their design work.
+                  - generic:
+                    - heading [level=3]: Future Trends
+                    - paragraph: Stay ahead with insights into emerging AI technologies and their impact on design.
+  - generic:
+    - generic:
+      - img
+    - button:
+      - img
+  - alert
+  - 'dialog "Day 1: Introduction to AI & Design" [ref=e2]':
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - 'heading "Day 1: Introduction to AI & Design" [level=2] [ref=e5]'
+        - generic [ref=e6]: 30 min
+      - paragraph [ref=e7]: Explore the fundamentals of AI and how it's transforming the design industry. Learn key concepts and terminology.
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - button "Overview" [active] [ref=e10] [cursor=pointer]
+        - button "Sections (5)" [ref=e11] [cursor=pointer]
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e15]: What you'll learn
+          - paragraph [ref=e17]: This day covers essential concepts and hands-on activities to help you understand AI fundamentals from a designer's perspective.
+        - generic [ref=e18]:
+          - generic [ref=e20]: Requirements
+          - list [ref=e22]:
+            - listitem [ref=e23]: • No prior AI experience needed
+            - listitem [ref=e24]: • Basic design knowledge recommended
+            - listitem [ref=e25]: • 30-45 minutes of focused time
+            - listitem [ref=e26]: • Access to a computer with internet
+        - generic [ref=e27]:
+          - generic [ref=e29]: After completing this day
+          - list [ref=e31]:
+            - listitem [ref=e32]: • Earn a completion badge
+            - listitem [ref=e33]: • Unlock the next day's content
+            - listitem [ref=e34]: • Build practical AI skills
+            - listitem [ref=e35]: • Complete portfolio-ready activities
+    - generic [ref=e36]:
+      - link "Sign In to Access Course" [ref=e37] [cursor=pointer]:
+        - /url: /signin
+        - button "Sign In to Access Course" [ref=e38] [cursor=pointer]
+      - link "Create Account" [ref=e39] [cursor=pointer]:
+        - /url: /signup
+        - button "Create Account" [ref=e40] [cursor=pointer]
+    - paragraph [ref=e41]:
+      - text: Already have an account?
+      - link "Sign in here" [ref=e42] [cursor=pointer]:
+        - /url: /signin
+    - button "Close" [ref=e43] [cursor=pointer]:
+      - img [ref=e44] [cursor=pointer]
+      - generic [ref=e47] [cursor=pointer]: Close
+```

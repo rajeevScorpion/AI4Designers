@@ -8,30 +8,20 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:3000',  // 👈 match your Next.js dev server
     trace: 'on-first-retry',
   },
 
-  projects: [
+   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
+    command: 'npx cross-env PORT=3000 npm run dev',
+    url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120 * 1000,
   },

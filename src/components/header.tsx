@@ -7,9 +7,11 @@ import { Menu, X, PanelLeftIcon } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { AuthSection } from '@/components/auth/auth-section'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -32,19 +34,22 @@ export function Header() {
               >
                 Home
               </Link>
-              <Link
-                href="/day/1"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                Course
-              </Link>
-              <Link
-                href="/profile"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                Profile
-              </Link>
-            </nav>
+              {user ? (
+                <Link
+                  href="/day/1"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                >
+                  Course
+                </Link>
+              ) : (
+                <span
+                  className="text-sm font-medium text-muted-foreground cursor-not-allowed"
+                  title="Sign in to access the course"
+                >
+                  Course
+                </span>
+              )}
+                          </nav>
           </div>
 
           {/* Auth Section */}
@@ -52,8 +57,8 @@ export function Header() {
             {/* Theme Toggle Button */}
             <ThemeToggle />
 
-            {/* Course Menu Button - shows on all screens */}
-            <SidebarTrigger className="h-8 w-8" />
+            {/* Course Menu Button - only for authenticated users */}
+            {user && <SidebarTrigger className="h-8 w-8" />}
 
             {/* Auth Section */}
             <AuthSection />
@@ -81,21 +86,23 @@ export function Header() {
               >
                 Home
               </Link>
-              <Link
-                href="/day/1"
-                className="block text-sm font-medium py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Course
-              </Link>
-              <Link
-                href="/profile"
-                className="block text-sm font-medium py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Profile
-              </Link>
-            </div>
+              {user ? (
+                <Link
+                  href="/day/1"
+                  className="block text-sm font-medium py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Course
+                </Link>
+              ) : (
+                <span
+                  className="block text-sm font-medium py-2 text-muted-foreground cursor-not-allowed"
+                  title="Sign in to access the course"
+                >
+                  Course
+                </span>
+              )}
+                          </div>
           </div>
         )}
       </div>
