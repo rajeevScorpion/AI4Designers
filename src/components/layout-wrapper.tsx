@@ -7,7 +7,9 @@ import { CourseSidebar } from './course-sidebar'
 import { useSidebar } from '@/components/ui/sidebar'
 import { SidebarInset, Sidebar } from '@/components/ui/sidebar'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCourse } from '@/contexts/CourseContext'
 import { Button } from '@/components/ui/button'
+import { useEffect, useState } from 'react'
 
 // Mock course data - this should come from an API or context
 const mockCourseDays = [
@@ -85,9 +87,37 @@ interface LayoutWrapperProps {
 export function LayoutWrapper({ children }: LayoutWrapperProps) {
   const pathname = usePathname()
   const { user, loading } = useAuth()
-  // Use mock data without authentication
-  const courseDays = mockCourseDays
+  const { userProgress, getDayProgress, isLoading } = useCourse()
   const { open, setOpen, openMobile, setOpenMobile, isMobile } = useSidebar()
+  const [courseDays, setCourseDays] = useState(mockCourseDays)
+
+  // Update course days with progress data
+  useEffect(() => {
+    if (!isLoading && userProgress) {
+      const updatedDays = mockCourseDays.map(day => {
+        const dayProgress = getDayProgress(day.id)
+        const completedSections = dayProgress?.completedSections || []
+
+        const updatedSections = day.sections.map(section => ({
+          ...section,
+          isCompleted: completedSections.includes(section.id)
+        }))
+
+        // Calculate day progress
+        const progressPercentage = dayProgress?.completionPercentage || 0
+        const isDayCompleted = progressPercentage >= 80
+
+        return {
+          ...day,
+          sections: updatedSections,
+          isCompleted: isDayCompleted,
+          progress: progressPercentage
+        }
+      })
+
+      setCourseDays(updatedDays)
+    }
+  }, [userProgress, isLoading, getDayProgress])
 
   // Check if we're on an auth page to avoid showing sidebar
   const isAuthPage = pathname.startsWith('/signin') || pathname.startsWith('/signup')
@@ -103,7 +133,7 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
         <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
           <CourseSidebar
             days={courseDays}
-            currentDay={1}
+            currentDay={userProgress?.currentDay || 1}
           />
         </Sidebar>
       )}

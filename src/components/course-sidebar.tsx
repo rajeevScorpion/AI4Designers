@@ -103,9 +103,9 @@ export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
                 }}
               >
                 {getSectionIcon(section.type)}
-                <span>{section.title}</span>
+                <span className="flex-1">{section.title}</span>
                 {section.isCompleted && (
-                  <CheckCircle className="w-3 h-3 text-chart-3 ml-auto" />
+                  <CheckCircle className="w-4 h-4 text-chart-3 ml-2" />
                 )}
               </Link>
             ))}
