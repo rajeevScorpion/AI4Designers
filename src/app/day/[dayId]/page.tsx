@@ -65,18 +65,20 @@ export default function Day({ params }: DayProps) {
     }
   }, [searchParams])
 
-  // Show login modal when navigating to a new day (track last seen day)
+  // Show login modal only once per session for unauthenticated users
   useEffect(() => {
-    const lastSeenDay = sessionState.currentDay
-    if (lastSeenDay !== dayId) {
+    const hasSeenLoginModal = sessionStorage.getItem('hasSeenLoginModal')
+
+    if (!user && !hasSeenLoginModal) {
       // Add a small delay to ensure the modal appears after page load
       const timer = setTimeout(() => {
         setShowLoginModal(true)
+        sessionStorage.setItem('hasSeenLoginModal', 'true')
         updateSessionState({ currentDay: dayId })
       }, 100)
       return () => clearTimeout(timer)
     }
-  }, [dayId, sessionState.currentDay, updateSessionState])
+  }, [dayId, user, updateSessionState])
 
   // Helper functions for day data
   const getDayTitle = (dayId: number) => {

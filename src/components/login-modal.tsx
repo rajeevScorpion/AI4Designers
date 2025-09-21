@@ -101,7 +101,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               onClick={handleCertificateClick}
               className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black font-semibold transition-all duration-200 hover:scale-105 hover:shadow-lg"
             >
-              Give me Certificate
+              Earn a Certificate
             </Button>
           </div>
         </div>
