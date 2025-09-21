@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { CheckCircle, Circle, Clock, ArrowRight, BookOpen, Users, Award } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { CoursePreviewModal } from "@/components/course-preview-modal"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface Day {
   id: number
@@ -21,6 +22,7 @@ interface Day {
 
 export default function Home() {
   const router = useRouter()
+  const { user, loading } = useAuth()
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
@@ -256,15 +258,41 @@ export default function Home() {
   ]
 
   const handleDaySelect = (dayId: number) => {
-    // Authentication removed - always show preview modal
-    setSelectedDay(dayId)
-    setPreviewModalOpen(true)
+    if (loading) return
+
+    if (user) {
+      // If user is authenticated, redirect to course content
+      router.push(`/course/day/${dayId}`)
+    } else {
+      // Show preview modal for non-authenticated users
+      setSelectedDay(dayId)
+      setPreviewModalOpen(true)
+    }
   }
 
   const handleStartCourse = () => {
-    // Authentication removed - always show preview modal
-    setSelectedDay(1)
-    setPreviewModalOpen(true)
+    if (loading) return
+
+    if (user) {
+      // If user is authenticated, redirect to first day
+      router.push('/course/day/1')
+    } else {
+      // Show preview modal for non-authenticated users
+      setSelectedDay(1)
+      setPreviewModalOpen(true)
+    }
+  }
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

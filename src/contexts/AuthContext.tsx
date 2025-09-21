@@ -81,9 +81,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUpWithEmail = async (data: SignUpData): Promise<AuthResult> => {
     try {
-      const result = await authService.signUp(data)
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
 
-      if (result.success) {
+      const result = await response.json()
+
+      if (response.ok) {
         // After successful signup, the user still needs to verify email
         return { success: true }
       } else {
@@ -97,22 +105,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithEmail = async (data: SignInData): Promise<AuthResult> => {
     try {
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
       })
 
-      if (error) {
-        console.error('Sign in error:', error)
-        return { success: false, error: error.message }
-      }
+      const result = await response.json()
 
-      if (authData.user) {
-        setUser(authData.user)
-        return { success: true, user: authData.user }
+      if (response.ok) {
+        if (result.user) {
+          setUser(result.user)
+          return { success: true, user: result.user }
+        }
+        return { success: false, error: 'Sign in failed' }
+      } else {
+        return { success: false, error: result.error }
       }
-
-      return { success: false, error: 'Sign in failed' }
     } catch (error) {
       console.error('Sign in error:', error)
       return { success: false, error: 'An unexpected error occurred' }

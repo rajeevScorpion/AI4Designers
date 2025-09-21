@@ -63,7 +63,8 @@
       "Bash(git init:*)",
       "Bash(git reset:*)",
       "Bash(npx tsc:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

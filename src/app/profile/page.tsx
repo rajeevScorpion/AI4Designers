@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Badge } from "@/components/ui/badge"
 import { User, Mail, Phone, Calendar, Building, Award, Save } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { createClient } from "@/lib/supabase/client"
 
 interface ProfileData {
   fullName: string
@@ -86,13 +87,38 @@ export default function Profile() {
     setMessage(null)
 
     try {
-      // TODO: Implement actual profile save to database
-      console.log('Saving profile data:', profileData)
-      setMessage({ type: 'success', text: "Profile updated successfully!" })
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) {
+        throw new Error('No authentication token')
+      }
+
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileData)
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: "Profile updated successfully!" })
+      } else {
+        setMessage({
+          type: 'error',
+          text: data.error || 'Failed to update profile'
+        })
+      }
     } catch (err) {
+      console.error('Profile save error:', err)
       setMessage({
         type: 'error',
-        text: "Failed to update profile"
+        text: 'Failed to update profile'
       })
     } finally {
       setIsSaving(false)
