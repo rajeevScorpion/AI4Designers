@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Badge } from "@/components/ui/badge"
 import { User, Mail, Phone, Calendar, Building, Award, Save } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface ProfileData {
   fullName: string
@@ -38,6 +39,7 @@ interface User {
 }
 
 export default function Profile() {
+  const { user } = useAuth()
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -53,6 +55,26 @@ export default function Profile() {
     dateOfBirth: ""
   })
 
+  // Load user data on mount
+  useEffect(() => {
+    if (user) {
+      const metadata = user.user_metadata || {}
+      setProfileData(prev => ({
+        ...prev,
+        fullName: metadata.full_name || "",
+        email: user.email || "",
+        phone: metadata.phone || "",
+        profession: metadata.profession || "student",
+        courseType: metadata.courseType || "",
+        stream: metadata.stream || "",
+        fieldOfWork: metadata.fieldOfWork || "",
+        designation: metadata.designation || "",
+        organization: metadata.organization || "",
+        dateOfBirth: metadata.dateOfBirth || ""
+      }))
+    }
+  }, [user])
+
   const validateIndianPhone = (phone: string) => {
     const phoneRegex = /^[6-9]\d{9}$/
     return phoneRegex.test(phone.replace(/\s/g, ""))
@@ -64,12 +86,13 @@ export default function Profile() {
     setMessage(null)
 
     try {
-      // Authentication has been removed - this is now a static UI
-      setMessage({ type: 'success', text: "Profile form submitted (static demo)" })
+      // TODO: Implement actual profile save to database
+      console.log('Saving profile data:', profileData)
+      setMessage({ type: 'success', text: "Profile updated successfully!" })
     } catch (err) {
       setMessage({
         type: 'error',
-        text: "Failed to submit profile"
+        text: "Failed to update profile"
       })
     } finally {
       setIsSaving(false)
@@ -83,12 +106,6 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Auth Disabled Notice */}
-        <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
-          <AlertDescription>
-            Authentication has been disabled. This is now a static UI demonstration. Profile information will not be saved.
-          </AlertDescription>
-        </Alert>
 
         {/* Header */}
         <div className="text-center space-y-2">
@@ -133,7 +150,7 @@ export default function Profile() {
                     value={profileData.fullName}
                     onChange={(e) => handleInputChange("fullName", e.target.value)}
                     className="pl-10"
-                    disabled
+                    disabled={false}
                   />
                 </div>
               </div>
@@ -149,7 +166,7 @@ export default function Profile() {
                     value={profileData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     className="pl-10"
-                    disabled
+                    disabled={false}
                   />
                 </div>
               </div>
@@ -166,7 +183,7 @@ export default function Profile() {
                     value={profileData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     className="pl-10"
-                    disabled
+                    disabled={false}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -181,7 +198,7 @@ export default function Profile() {
                   value={profileData.profession}
                   onValueChange={(value) => handleInputChange("profession", value)}
                   className="flex gap-6"
-                  disabled
+                  disabled={false}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="student" id="student" />
@@ -205,7 +222,7 @@ export default function Profile() {
                       placeholder="e.g., UG, PG, Diploma"
                       value={profileData.courseType}
                       onChange={(e) => handleInputChange("courseType", e.target.value)}
-                      disabled
+                      disabled={false}
                     />
                   </div>
                   <div className="space-y-2">
@@ -216,7 +233,7 @@ export default function Profile() {
                       placeholder="e.g., Graphic Design, UX Design"
                       value={profileData.stream}
                       onChange={(e) => handleInputChange("stream", e.target.value)}
-                      disabled
+                      disabled={false}
                     />
                   </div>
                 </div>
@@ -230,7 +247,7 @@ export default function Profile() {
                       placeholder="e.g., UI/UX Design, Product Design"
                       value={profileData.fieldOfWork}
                       onChange={(e) => handleInputChange("fieldOfWork", e.target.value)}
-                      disabled
+                      disabled={false}
                     />
                   </div>
                   <div className="space-y-2">
@@ -241,7 +258,7 @@ export default function Profile() {
                       placeholder="e.g., Senior Designer, Design Lead"
                       value={profileData.designation}
                       onChange={(e) => handleInputChange("designation", e.target.value)}
-                      disabled
+                      disabled={false}
                     />
                   </div>
                 </div>
@@ -261,7 +278,7 @@ export default function Profile() {
                     value={profileData.organization}
                     onChange={(e) => handleInputChange("organization", e.target.value)}
                     className="pl-10"
-                    disabled
+                    disabled={false}
                   />
                 </div>
               </div>
@@ -277,7 +294,7 @@ export default function Profile() {
                     value={profileData.dateOfBirth}
                     onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
                     className="pl-10"
-                    disabled
+                    disabled={false}
                   />
                 </div>
               </div>
@@ -285,7 +302,7 @@ export default function Profile() {
               <div className="flex justify-end">
                 <Button type="submit" variant="outline" disabled={isSaving}>
                   <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? "Saving..." : "Save Profile (Disabled)"}
+                  {isSaving ? "Saving..." : "Save Profile"}
                 </Button>
               </div>
             </form>

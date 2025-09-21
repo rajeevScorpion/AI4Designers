@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Menu, X, PanelLeftIcon } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { AuthSection } from '@/components/auth/auth-section'
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -54,12 +55,8 @@ export function Header() {
             {/* Course Menu Button - shows on all screens */}
             <SidebarTrigger className="h-8 w-8" />
 
-            {/* Sign In Button */}
-            <Link href="/signin">
-              <Button variant="default" size="sm">
-                Sign In
-              </Button>
-            </Link>
+            {/* Auth Section */}
+            <AuthSection />
 
             {/* Mobile Menu Button */}
             <Button
