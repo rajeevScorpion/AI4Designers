@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check active session on mount
     const checkSession = async () => {
       try {
+        console.log('Checking for existing session...')
         const { data: { session }, error } = await supabase.auth.getSession()
 
         if (error) {
@@ -53,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
 
+        console.log('Session found:', session?.user?.email)
         setUser(session?.user ?? null)
       } catch (error) {
         console.error('Session check error:', error)
@@ -69,61 +71,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth state changed:', event, session?.user?.email)
 
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('Setting user after SIGNED_IN:', session.user.email)
           setUser(session.user)
         } else if (event === 'SIGNED_OUT') {
+          console.log('Clearing user after SIGNED_OUT')
           setUser(null)
+        } else if (event === 'TOKEN_REFRESHED') {
+          // Update user state when token is refreshed
+          console.log('Updating user after TOKEN_REFRESHED:', session?.user?.email)
+          setUser(session?.user ?? null)
+        } else if (event === 'INITIAL_SESSION') {
+          console.log('Setting initial session user:', session?.user?.email)
+          setUser(session?.user ?? null)
         }
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
-  const signUpWithEmail = async (data: SignUpData): Promise<AuthResult> => {
+  const signUpWithEmail = async (signUpData: SignUpData): Promise<AuthResult> => {
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+      const { data, error } = await supabase.auth.signUp({
+        email: signUpData.email,
+        password: signUpData.password,
+        options: {
+          data: {
+            first_name: signUpData.firstName,
+            last_name: signUpData.lastName
+          }
+        }
       })
 
-      const result = await response.json()
-
-      if (response.ok) {
-        // After successful signup, the user still needs to verify email
-        return { success: true }
-      } else {
-        return { success: false, error: result.error }
+      if (error) {
+        console.error('Signup error:', error)
+        return { success: false, error: error.message }
       }
+
+      return { success: true }
     } catch (error) {
       console.error('Signup error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
 
-  const signInWithEmail = async (data: SignInData): Promise<AuthResult> => {
+  const signInWithEmail = async (signInData: SignInData): Promise<AuthResult> => {
     try {
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+      console.log('Attempting sign in for:', signInData.email)
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: signInData.email,
+        password: signInData.password
       })
 
-      const result = await response.json()
-
-      if (response.ok) {
-        if (result.user) {
-          setUser(result.user)
-          return { success: true, user: result.user }
-        }
-        return { success: false, error: 'Sign in failed' }
-      } else {
-        return { success: false, error: result.error }
+      if (error) {
+        console.error('Sign in error:', error)
+        return { success: false, error: error.message }
       }
+
+      console.log('Sign in success:', authData)
+
+      if (authData.user) {
+        setUser(authData.user)
+        return { success: true, user: authData.user }
+      }
+
+      return { success: false, error: 'Sign in failed - no user returned' }
     } catch (error) {
       console.error('Sign in error:', error)
       return { success: false, error: 'An unexpected error occurred' }

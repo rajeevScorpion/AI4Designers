@@ -64,7 +64,9 @@
       "Bash(git reset:*)",
       "Bash(npx tsc:*)",
       "Bash(findstr:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(npx supabase status:*)",
+      "Bash(start:*)"
     ],
     "deny": [],
     "ask": []

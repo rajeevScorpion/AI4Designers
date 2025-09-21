@@ -50,7 +50,7 @@ export const test = base.extend<AuthFixtures>({
       }
     })
 
-    // Mock Supabase auth
+    // Mock Supabase auth and intercept the auth context
     await page.addInitScript(() => {
       // Mock Supabase client
       ;(window as any).supabase = {
@@ -70,16 +70,79 @@ export const test = base.extend<AuthFixtures>({
             },
             error: null
           }),
-          onAuthStateChange: (callback: any) => ({
+          signInWithPassword: async () => ({
             data: {
-              subscription: {
-                unsubscribe: () => {}
+              user: {
+                id: 'test-user-id',
+                email: 'test@example.com',
+                user_metadata: {
+                  fullName: 'Test User',
+                  avatar_url: null
+                }
+              },
+              session: {
+                access_token: 'mock-token',
+                user: {
+                  id: 'test-user-id',
+                  email: 'test@example.com',
+                  user_metadata: {
+                    fullName: 'Test User',
+                    avatar_url: null
+                  }
+                }
+              }
+            },
+            error: null
+          }),
+          onAuthStateChange: (callback: any) => {
+            // Immediately call the callback with a signed-in user
+            setTimeout(() => {
+              callback('SIGNED_IN', {
+                user: {
+                  id: 'test-user-id',
+                  email: 'test@example.com',
+                  user_metadata: {
+                    fullName: 'Test User',
+                    avatar_url: null
+                  }
+                }
+              });
+            }, 100);
+
+            return {
+              data: {
+                subscription: {
+                  unsubscribe: () => {}
+                }
               }
             }
-          })
+          }
         }
       }
+
+      // Store auth state in localStorage for persistence
+      localStorage.setItem('supabase.auth.token', JSON.stringify({
+        currentSession: {
+          access_token: 'mock-token',
+          user: {
+            id: 'test-user-id',
+            email: 'test@example.com',
+            user_metadata: {
+              fullName: 'Test User',
+              avatar_url: null
+            }
+          }
+        }
+      }));
     })
+
+    // Handle the sign-in success message and redirect
+    page.on('response', async (response) => {
+      if (response.url().includes('/api/auth/signin') && response.status() === 200) {
+        // Wait for the success message to appear
+        await page.waitForSelector('text=Successfully signed in! Redirecting...', { timeout: 5000 });
+      }
+    });
 
     await use(page)
   }

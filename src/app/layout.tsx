@@ -6,6 +6,7 @@ import { Providers } from '@/components/providers'
 import { LayoutWrapper } from '@/components/layout-wrapper'
 import { CourseProvider } from '@/contexts/CourseContext'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { AuthGuard } from '@/components/auth-guard'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,13 +24,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          <CourseProvider>
-            <SidebarProvider defaultOpen={false}>
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
-            </SidebarProvider>
-          </CourseProvider>
+          <AuthGuard>
+            <CourseProvider>
+              <SidebarProvider defaultOpen={false}>
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
+              </SidebarProvider>
+            </CourseProvider>
+          </AuthGuard>
         </Providers>
       </body>
     </html>

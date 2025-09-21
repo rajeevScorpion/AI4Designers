@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - link "AI AI4Designers" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e10] [cursor=pointer]: AI
+          - generic [ref=e11] [cursor=pointer]: AI4Designers
+        - navigation [ref=e12]:
+          - link "Home" [ref=e13] [cursor=pointer]:
+            - /url: /
+          - generic "Sign in to access the course" [ref=e14]: Course
+      - generic [ref=e15]:
+        - button "Toggle theme" [ref=e16] [cursor=pointer]:
+          - img
+          - img
+          - generic [ref=e17] [cursor=pointer]: Toggle theme
+        - link "Sign In" [ref=e18] [cursor=pointer]:
+          - /url: /signin
+          - button "Sign In" [active] [ref=e19] [cursor=pointer]
+    - main [ref=e20]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: Welcome back
+          - generic [ref=e25]: Sign in to your AI4Designers account
+        - generic [ref=e26]:
+          - button "Sign in with Google" [ref=e27] [cursor=pointer]:
+            - img
+            - text: Sign in with Google
+          - generic [ref=e31]: Or continue with email
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - generic [ref=e34]: Email
+              - generic [ref=e35]:
+                - img [ref=e36]
+                - textbox "Email" [ref=e39]: test@example.com
+            - generic [ref=e40]:
+              - generic [ref=e41]: Password
+              - generic [ref=e42]:
+                - img [ref=e43]
+                - textbox "Password" [ref=e46]: password123
+                - button [ref=e47] [cursor=pointer]:
+                  - img [ref=e48] [cursor=pointer]
+            - button "Sign In" [ref=e51] [cursor=pointer]
+        - generic [ref=e53]:
+          - generic [ref=e54]: Don't have an account?
+          - link "Sign up" [ref=e55] [cursor=pointer]:
+            - /url: /signup
+  - generic [ref=e56]:
+    - img [ref=e58]
+    - button "Open Tanstack query devtools" [ref=e106] [cursor=pointer]:
+      - img [ref=e107] [cursor=pointer]
+  - alert [ref=e155]
+```
