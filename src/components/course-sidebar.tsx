@@ -49,7 +49,7 @@ export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               {day.isCompleted ? (
-                <CheckCircle className="w-4 h-4 text-amber-200" />
+                <CheckCircle className="w-4 h-4 text-amber-800" />
               ) : (
                 <Circle className="w-4 h-4 text-muted-foreground" />
               )}
@@ -110,7 +110,7 @@ export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
                 }}
               >
                 {section.isCompleted ? (
-                  <CheckCircle className="w-4 h-4 text-amber-200" />
+                  <CheckCircle className="w-4 h-4 text-amber-800" />
                 ) : (
                   <Circle className="w-4 h-4 text-muted-foreground" />
                 )}
