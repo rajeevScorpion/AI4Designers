@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/client'
-import { db } from '@/lib/db'
-import { users } from '@/shared/schema'
-import { eq } from 'drizzle-orm'
 
-// Demo mode - authentication is disabled
+// Helper function to get user from JWT token
+async function getUserFromToken(request: NextRequest) {
+  const authHeader = request.headers.get('authorization')
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null
+  }
+
+  const token = authHeader.substring(7)
+  const supabase = createClient()
+
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+    if (error || !user) {
+      return null
+    }
+    return user
+  } catch (error) {
+    console.error('Token validation error:', error)
+    return null
+  }
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
@@ -21,11 +39,9 @@ export async function PUT(request: NextRequest) {
       dateOfBirth
     } = body
 
-    // Check if user exists and get current profile status
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session?.user?.email) {
+    // Get user from JWT token
+    const user = await getUserFromToken(request)
+    if (!user?.email) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -33,9 +49,15 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get current user data to check if profile is locked
-    const currentUser = await db.select().from(users).where(eq(users.email, session.user.email)).limit(1)
+    const supabase = createClient()
+    const { data: currentUser, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', user.email)
+      .single()
 
-    if (currentUser.length > 0 && (currentUser[0] as any).profileLocked) {
+  
+    if (currentUser?.profilelocked) {
       return NextResponse.json(
         { error: 'Profile is locked and cannot be modified' },
         { status: 400 }
@@ -43,7 +65,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate email matches the authenticated user's email
-    if (email !== session.user.email) {
+    if (email !== user.email) {
       return NextResponse.json(
         { error: 'Email cannot be changed' },
         { status: 400 }
@@ -88,45 +110,48 @@ export async function PUT(request: NextRequest) {
 
     // Update or create user profile
     const updateData = {
-      fullName: fullName.trim(),
+      fullname: fullName.trim(),
       email: email.trim(),
       phone: phone.trim(),
       profession: profession.trim(),
-      courseType: profession === 'student' ? courseType.trim() : null,
+      coursetype: profession === 'student' ? courseType.trim() : null,
       stream: profession === 'student' ? stream.trim() : null,
-      fieldOfWork: profession === 'working' ? fieldOfWork.trim() : null,
+      fieldofwork: profession === 'working' ? fieldOfWork.trim() : null,
       designation: profession === 'working' ? designation.trim() : null,
       organization: organization.trim(),
-      dateOfBirth: dateOfBirth.trim(),
-      profileLocked: true,
-      isProfileComplete: true,
-      updatedAt: new Date()
+      dateofbirth: dateOfBirth.trim(),
+      profilelocked: true,
+      isprofilecomplete: true,
+      updatedat: new Date().toISOString()
     }
 
     let result
-    if (currentUser.length > 0) {
+    if (currentUser) {
       // Update existing user
-      result = await db
-        .update(users)
-        .set(updateData)
-        .where(eq(users.email, session.user.email))
-        .returning()
+      result = await supabase
+        .from('users')
+        .update(updateData)
+        .eq('email', user.email)
+        .select()
+        .single()
     } else {
-      // Create new user record
-      result = await db
-        .insert(users)
-        .values({
+            // Create new user record
+      result = await supabase
+        .from('users')
+        .insert({
           ...updateData,
-          id: session.user.id,
-          createdAt: new Date()
+          id: user.id,
+          createdat: new Date().toISOString()
         })
-        .returning()
+        .select()
+        .single()
     }
 
+    
     return NextResponse.json({
       success: true,
       message: 'Profile updated successfully',
-      user: result[0]
+      user: result.data
     })
 
   } catch (error) {
@@ -140,10 +165,10 @@ export async function PUT(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    // Get user from JWT token
+    const user = await getUserFromToken(request)
 
-    if (!session?.user?.email) {
+    if (!user?.email) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -151,27 +176,33 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user profile data
-    const userProfile = await db.select().from(users).where(eq(users.email, session.user.email)).limit(1)
+    const supabase = createClient()
+    const { data: userProfile, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', user.email)
+      .single()
 
-    if (userProfile.length === 0) {
+
+    if (fetchError && fetchError.code === 'PGRST116') {
       // Return basic user info if no profile exists yet
       return NextResponse.json({
         success: true,
         user: {
-          id: session.user.id,
-          email: session.user.email,
-          fullName: session.user.user_metadata?.full_name || '',
-          profileLocked: false,
-          isProfileComplete: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          id: user.id,
+          email: user.email,
+          fullname: user.user_metadata?.full_name || '',
+          profilelocked: false,
+          isprofilecomplete: false,
+          createdat: new Date(),
+          updatedat: new Date()
         }
       })
     }
 
     return NextResponse.json({
       success: true,
-      user: userProfile[0]
+      user: userProfile
     })
 
   } catch (error) {

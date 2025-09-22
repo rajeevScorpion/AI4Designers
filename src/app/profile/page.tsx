@@ -82,18 +82,18 @@ export default function Profile() {
             if (response.ok && data.user) {
               setProfileData(prev => ({
                 ...prev,
-                fullName: data.user.fullName || "",
+                fullName: data.user.fullname || "",
                 email: data.user.email || "",
                 phone: data.user.phone || "",
                 profession: data.user.profession || "student",
-                courseType: data.user.courseType || "",
+                courseType: data.user.coursetype || "",
                 stream: data.user.stream || "",
-                fieldOfWork: data.user.fieldOfWork || "",
+                fieldOfWork: data.user.fieldofwork || "",
                 designation: data.user.designation || "",
                 organization: data.user.organization || "",
-                dateOfBirth: data.user.dateOfBirth || ""
+                dateOfBirth: data.user.dateofbirth || ""
               }))
-              setProfileLocked(data.user.profileLocked || false)
+              setProfileLocked(data.user.profilelocked || false)
             } else {
               // Fallback to user metadata if no profile exists
               const metadata = user.user_metadata || {}
