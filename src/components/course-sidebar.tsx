@@ -92,31 +92,35 @@ export function CourseSidebar({ days, currentDay }: CourseSidebarProps) {
             </Link>
 
             {/* Sections */}
-            {day.sections.map((section) => (
-              <Link
-                key={section.id}
-                href={`/day/${day.id}#${section.id}`}
-                className="flex items-center gap-2 p-2 pl-6 rounded-md text-xs transition-colors hover:bg-accent"
-                data-testid={`button-sidebar-section-${section.id}`}
-                onClick={() => {
-                  // Close the sidebar when navigating
-                  const sheet = document.querySelector('[data-state="open"] [role="dialog"]');
-                  if (sheet) {
-                    const closeButton = sheet.querySelector('button[aria-label="Close"]');
-                    if (closeButton) {
-                      (closeButton as HTMLButtonElement).click();
+            {day.sections.map((section, sectionIndex) => {
+              // Calculate which page this section appears on (1 section per page)
+              const sectionPage = sectionIndex
+              return (
+                <Link
+                  key={section.id}
+                  href={`/day/${day.id}?page=${sectionPage}`}
+                  className="flex items-center gap-2 p-2 pl-6 rounded-md text-xs transition-colors hover:bg-accent"
+                  data-testid={`button-sidebar-section-${section.id}`}
+                  onClick={() => {
+                    // Close the sidebar when navigating
+                    const sheet = document.querySelector('[data-state="open"] [role="dialog"]');
+                    if (sheet) {
+                      const closeButton = sheet.querySelector('button[aria-label="Close"]');
+                      if (closeButton) {
+                        (closeButton as HTMLButtonElement).click();
+                      }
                     }
-                  }
-                }}
-              >
-                {section.isCompleted ? (
-                  <CheckCircle className="w-4 h-4 text-amber-800" />
-                ) : (
-                  <Circle className="w-4 h-4 text-muted-foreground" />
-                )}
-                <span className="flex-1">{section.title}</span>
-              </Link>
-            ))}
+                  }}
+                >
+                  {section.isCompleted ? (
+                    <CheckCircle className="w-4 h-4 text-amber-800" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-muted-foreground" />
+                  )}
+                  <span className="flex-1">{section.title}</span>
+                </Link>
+              )
+            })}
           </div>
         </div>
       ))}

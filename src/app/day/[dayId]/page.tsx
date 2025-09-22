@@ -43,7 +43,11 @@ export default function Day({ params }: DayProps) {
     isLoading
   } = useCourse()
 
-  const [currentPage, setCurrentPage] = useState(0)
+  const [currentPage, setCurrentPage] = useState(() => {
+    // Get initial page from URL query parameter
+    const pageParam = searchParams.get('page')
+    return pageParam ? parseInt(pageParam) : 0
+  })
   const [showLoginModal, setShowLoginModal] = useState(false)
   const { celebrateCompletion, smallCelebration } = useConfetti()
 
@@ -51,19 +55,6 @@ export default function Day({ params }: DayProps) {
   const dayProgress = getDayProgress(dayId)
   const completedSections = dayProgress?.completedSections || []
   const quizScores = dayProgress?.quizScores || {}
-
-  // Handle anchor links
-  useEffect(() => {
-    const hash = window.location.hash
-    if (hash) {
-      const element = document.querySelector(hash)
-      if (element) {
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth' })
-        }, 100)
-      }
-    }
-  }, [searchParams])
 
   // Show login modal only once per session for unauthenticated users
   useEffect(() => {
@@ -118,6 +109,32 @@ export default function Day({ params }: DayProps) {
     estimatedTime: getDayTime(dayId),
     sections: courseData[dayId] || []
   }
+
+  // Handle anchor links and page navigation
+  useEffect(() => {
+    const hash = window.location.hash
+    const pageParam = searchParams.get('page')
+
+    // Handle page parameter
+    if (pageParam) {
+      const pageNum = parseInt(pageParam)
+      if (!isNaN(pageNum) && pageNum >= 0 && pageNum < dayData.sections.length) {
+        setCurrentPage(pageNum)
+      }
+    }
+
+    // Handle anchor links (for backward compatibility)
+    if (hash) {
+      const sectionId = hash.substring(1) // Remove # from hash
+      // Find which page this section is on
+      const sectionIndex = dayData.sections.findIndex(section => section.id === sectionId)
+      if (sectionIndex !== -1) {
+        setCurrentPage(sectionIndex)
+        // Remove the hash from URL to use clean page-based navigation
+        router.push(`/day/${dayId}?page=${sectionIndex}`)
+      }
+    }
+  }, [searchParams, dayId, dayData.sections, router])
 
   // Pagination: Split sections into pages (1 section per page, max 5 pages)
   const sectionsPerPage = 1
@@ -199,7 +216,10 @@ export default function Day({ params }: DayProps) {
 
   const goToNextPage = () => {
     if (currentPage < totalPages - 1 && unlockedSections.includes(currentPage + 1)) {
-      setCurrentPage(currentPage + 1)
+      const nextPage = currentPage + 1
+      setCurrentPage(nextPage)
+      // Update URL to reflect the new page
+      router.push(`/day/${dayId}?page=${nextPage}`)
       // Use custom smooth scroll with better easing
       setTimeout(() => {
         smoothScrollToTop({
@@ -212,7 +232,10 @@ export default function Day({ params }: DayProps) {
 
   const goToPreviousPage = () => {
     if (currentPage > 0 && unlockedSections.includes(currentPage - 1)) {
-      setCurrentPage(currentPage - 1)
+      const prevPage = currentPage - 1
+      setCurrentPage(prevPage)
+      // Update URL to reflect the new page
+      router.push(`/day/${dayId}?page=${prevPage}`)
       // Use custom smooth scroll with better easing
       setTimeout(() => {
         smoothScrollToTop({
@@ -254,6 +277,8 @@ export default function Day({ params }: DayProps) {
     // Only allow navigation to unlocked sections
     if (unlockedSections.includes(sectionIndex)) {
       setCurrentPage(sectionIndex)
+      // Update URL to reflect the new page
+      router.push(`/day/${dayId}?page=${sectionIndex}`)
     }
   }
 
