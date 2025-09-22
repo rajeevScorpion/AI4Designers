@@ -310,7 +310,10 @@ export default function Day({ params }: DayProps) {
 
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col items-start gap-2 mb-4">
+              <Badge variant="secondary" className="self-end">
+                {dayData.estimatedTime}
+              </Badge>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>📅 Day {dayId} of 5</span>
                   <span>|</span>
@@ -318,9 +321,6 @@ export default function Day({ params }: DayProps) {
                   <span>|</span>
                   <span>✅ {completedSections.length} completed</span>
                 </div>
-              <Badge variant="secondary">
-                {dayData.estimatedTime}
-              </Badge>
             </div>
 
             <h1 className="text-4xl font-bold mb-2">{dayData.title}</h1>
