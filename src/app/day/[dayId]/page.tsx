@@ -311,24 +311,13 @@ export default function Day({ params }: DayProps) {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => router.push('/')}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Home
-                </Button>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Day {dayId} of 5</span>
-                  <span>•</span>
-                  <span>{dayData.sections.length} sections</span>
-                  <span>•</span>
-                  <span>{completedSections.length} completed</span>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>📅 Day {dayId} of 5</span>
+                  <span>|</span>
+                  <span>📚 {dayData.sections.length} sections</span>
+                  <span>|</span>
+                  <span>✅ {completedSections.length} completed</span>
                 </div>
-              </div>
               <Badge variant="secondary">
                 {dayData.estimatedTime}
               </Badge>
