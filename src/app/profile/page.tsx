@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, Calendar, Building, Award, Save } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { User, Mail, Phone, Calendar, Building, Award, Save, Lock } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { createClient } from "@/lib/supabase/client"
 
@@ -37,12 +38,16 @@ interface User {
   designation?: string;
   organization?: string;
   dateOfBirth?: string;
+  profileLocked?: boolean;
+  isProfileComplete?: boolean;
 }
 
 export default function Profile() {
   const { user } = useAuth()
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [profileLocked, setProfileLocked] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [profileData, setProfileData] = useState<ProfileData>({
     fullName: "",
     email: "",
@@ -58,22 +63,62 @@ export default function Profile() {
 
   // Load user data on mount
   useEffect(() => {
-    if (user) {
-      const metadata = user.user_metadata || {}
-      setProfileData(prev => ({
-        ...prev,
-        fullName: metadata.full_name || "",
-        email: user.email || "",
-        phone: metadata.phone || "",
-        profession: metadata.profession || "student",
-        courseType: metadata.courseType || "",
-        stream: metadata.stream || "",
-        fieldOfWork: metadata.fieldOfWork || "",
-        designation: metadata.designation || "",
-        organization: metadata.organization || "",
-        dateOfBirth: metadata.dateOfBirth || ""
-      }))
+    const loadProfileData = async () => {
+      if (user) {
+        try {
+          const supabase = createClient()
+          const { data: { session } } = await supabase.auth.getSession()
+          const token = session?.access_token
+
+          if (token) {
+            const response = await fetch('/api/profile', {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            })
+
+            const data = await response.json()
+
+            if (response.ok && data.user) {
+              setProfileData(prev => ({
+                ...prev,
+                fullName: data.user.fullName || "",
+                email: data.user.email || "",
+                phone: data.user.phone || "",
+                profession: data.user.profession || "student",
+                courseType: data.user.courseType || "",
+                stream: data.user.stream || "",
+                fieldOfWork: data.user.fieldOfWork || "",
+                designation: data.user.designation || "",
+                organization: data.user.organization || "",
+                dateOfBirth: data.user.dateOfBirth || ""
+              }))
+              setProfileLocked(data.user.profileLocked || false)
+            } else {
+              // Fallback to user metadata if no profile exists
+              const metadata = user.user_metadata || {}
+              setProfileData(prev => ({
+                ...prev,
+                fullName: metadata.full_name || "",
+                email: user.email || "",
+                phone: metadata.phone || "",
+                profession: metadata.profession || "student",
+                courseType: metadata.courseType || "",
+                stream: metadata.stream || "",
+                fieldOfWork: metadata.fieldOfWork || "",
+                designation: metadata.designation || "",
+                organization: metadata.organization || "",
+                dateOfBirth: metadata.dateOfBirth || ""
+              }))
+            }
+          }
+        } catch (error) {
+          console.error('Error loading profile data:', error)
+        }
+      }
     }
+
+    loadProfileData()
   }, [user])
 
   const validateIndianPhone = (phone: string) => {
@@ -81,8 +126,51 @@ export default function Profile() {
     return phoneRegex.test(phone.replace(/\s/g, ""))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const validateForm = () => {
+    const errors = []
+
+    if (!profileData.fullName.trim()) errors.push('Full name is required')
+    if (!profileData.email.trim()) errors.push('Email is required')
+    if (!profileData.phone.trim()) errors.push('Phone number is required')
+    if (!profileData.organization.trim()) errors.push('Organization is required')
+    if (!profileData.dateOfBirth.trim()) errors.push('Date of birth is required')
+
+    if (profileData.profession === 'student') {
+      if (!profileData.courseType?.trim()) errors.push('Course type is required for students')
+      if (!profileData.stream?.trim()) errors.push('Stream is required for students')
+    } else {
+      if (!profileData.fieldOfWork?.trim()) errors.push('Field of work is required for professionals')
+      if (!profileData.designation?.trim()) errors.push('Designation is required for professionals')
+    }
+
+    if (!validateIndianPhone(profileData.phone)) {
+      errors.push('Please enter a valid Indian mobile number')
+    }
+
+    return errors
+  }
+
+  const handleConfirmSave = async () => {
+    setShowConfirmModal(false)
+    await handleSubmit()
+  }
+
+  const handleSaveClick = (e: React.FormEvent) => {
     e.preventDefault()
+
+    const errors = validateForm()
+    if (errors.length > 0) {
+      setMessage({
+        type: 'error',
+        text: errors.join(', ')
+      })
+      return
+    }
+
+    setShowConfirmModal(true)
+  }
+
+  const handleSubmit = async () => {
     setIsSaving(true)
     setMessage(null)
 
@@ -108,6 +196,7 @@ export default function Profile() {
 
       if (response.ok) {
         setMessage({ type: 'success', text: "Profile updated successfully!" })
+        setProfileLocked(true)
       } else {
         setMessage({
           type: 'error',
@@ -139,6 +228,12 @@ export default function Profile() {
           <p className="text-muted-foreground">
             Manage your personal information and track your achievements
           </p>
+          {profileLocked && (
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              <Lock className="w-4 h-4" />
+              <span className="text-sm font-medium">Profile Locked</span>
+            </div>
+          )}
         </div>
 
         {/* Success/Error Message */}
@@ -166,7 +261,10 @@ export default function Profile() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Full Name */}
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name *</Label>
+                <Label htmlFor="fullName" className="flex items-center gap-2">
+                  Full Name *
+                  {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -176,14 +274,22 @@ export default function Profile() {
                     value={profileData.fullName}
                     onChange={(e) => handleInputChange("fullName", e.target.value)}
                     className="pl-10"
-                    disabled={false}
+                    disabled={profileLocked}
                   />
                 </div>
+                {profileLocked && (
+                  <p className="text-xs text-muted-foreground">
+                    Name can only be set once and cannot be changed
+                  </p>
+                )}
               </div>
 
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email ID *</Label>
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  Email ID *
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -192,14 +298,20 @@ export default function Profile() {
                     value={profileData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     className="pl-10"
-                    disabled={false}
+                    disabled={true}
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Email is permanently locked and cannot be changed
+                </p>
               </div>
 
               {/* Phone */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Contact Number *</Label>
+                <Label htmlFor="phone" className="flex items-center gap-2">
+                  Contact Number *
+                  {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -209,7 +321,7 @@ export default function Profile() {
                     value={profileData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     className="pl-10"
-                    disabled={false}
+                    disabled={profileLocked}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -219,12 +331,15 @@ export default function Profile() {
 
               {/* Profession */}
               <div className="space-y-3">
-                <Label>Profession *</Label>
+                <Label className="flex items-center gap-2">
+                  Profession *
+                  {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                </Label>
                 <RadioGroup
                   value={profileData.profession}
                   onValueChange={(value) => handleInputChange("profession", value)}
                   className="flex gap-6"
-                  disabled={false}
+                  disabled={profileLocked}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="student" id="student" />
@@ -241,50 +356,62 @@ export default function Profile() {
               {profileData.profession === "student" ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="courseType">Course Pursuing *</Label>
+                    <Label htmlFor="courseType" className="flex items-center gap-2">
+                      Course Pursuing *
+                      {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                    </Label>
                     <Input
                       id="courseType"
                       type="text"
                       placeholder="e.g., UG, PG, Diploma"
                       value={profileData.courseType}
                       onChange={(e) => handleInputChange("courseType", e.target.value)}
-                      disabled={false}
+                      disabled={profileLocked}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="stream">Stream *</Label>
+                    <Label htmlFor="stream" className="flex items-center gap-2">
+                      Stream *
+                      {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                    </Label>
                     <Input
                       id="stream"
                       type="text"
                       placeholder="e.g., Graphic Design, UX Design"
                       value={profileData.stream}
                       onChange={(e) => handleInputChange("stream", e.target.value)}
-                      disabled={false}
+                      disabled={profileLocked}
                     />
                   </div>
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="fieldOfWork">Field of Work *</Label>
+                    <Label htmlFor="fieldOfWork" className="flex items-center gap-2">
+                      Field of Work *
+                      {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                    </Label>
                     <Input
                       id="fieldOfWork"
                       type="text"
                       placeholder="e.g., UI/UX Design, Product Design"
                       value={profileData.fieldOfWork}
                       onChange={(e) => handleInputChange("fieldOfWork", e.target.value)}
-                      disabled={false}
+                      disabled={profileLocked}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="designation">Designation *</Label>
+                    <Label htmlFor="designation" className="flex items-center gap-2">
+                      Designation *
+                      {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                    </Label>
                     <Input
                       id="designation"
                       type="text"
                       placeholder="e.g., Senior Designer, Design Lead"
                       value={profileData.designation}
                       onChange={(e) => handleInputChange("designation", e.target.value)}
-                      disabled={false}
+                      disabled={profileLocked}
                     />
                   </div>
                 </div>
@@ -292,8 +419,9 @@ export default function Profile() {
 
               {/* Organization */}
               <div className="space-y-2">
-                <Label htmlFor="organization">
+                <Label htmlFor="organization" className="flex items-center gap-2">
                   {profileData.profession === "student" ? "College Name *" : "Organization *"}
+                  {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
                 </Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -304,14 +432,17 @@ export default function Profile() {
                     value={profileData.organization}
                     onChange={(e) => handleInputChange("organization", e.target.value)}
                     className="pl-10"
-                    disabled={false}
+                    disabled={profileLocked}
                   />
                 </div>
               </div>
 
               {/* Date of Birth */}
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                <Label htmlFor="dateOfBirth" className="flex items-center gap-2">
+                  Date of Birth *
+                  {profileLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                </Label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -320,13 +451,18 @@ export default function Profile() {
                     value={profileData.dateOfBirth}
                     onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
                     className="pl-10"
-                    disabled={false}
+                    disabled={profileLocked}
                   />
                 </div>
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit" variant="outline" disabled={isSaving}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isSaving || profileLocked}
+                  onClick={handleSaveClick}
+                >
                   <Save className="w-4 h-4 mr-2" />
                   {isSaving ? "Saving..." : "Save Profile"}
                 </Button>
@@ -334,6 +470,26 @@ export default function Profile() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Confirmation Modal */}
+        <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Profile Save</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. Once you save your profile, all fields except your name will be permanently locked and cannot be modified. Your profile information will be used for certificate generation.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
+                Review
+              </Button>
+              <Button onClick={handleConfirmSave}>
+                Confirm
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Earned Badges Section */}
         <Card>

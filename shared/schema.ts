@@ -42,6 +42,8 @@ export const users = pgTable("users", {
   designation: varchar("designation"), // Senior Designer, Design Lead, etc. (for professionals)
   organization: varchar("organization"), // College name or company name
   dateOfBirth: varchar("date_of_birth"),
+  profileLocked: boolean("profile_locked").default(false),
+  isProfileComplete: boolean("is_profile_complete").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
