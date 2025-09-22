@@ -310,8 +310,8 @@ export default function Day({ params }: DayProps) {
 
           {/* Header */}
           <div className="mb-8">
-            <div className="flex flex-col items-start gap-2 mb-4">
-              <Badge variant="secondary" className="self-end">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <Badge variant="secondary" className="sm:self-end self-start">
                 {dayData.estimatedTime}
               </Badge>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
