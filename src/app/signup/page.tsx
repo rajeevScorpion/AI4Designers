@@ -26,7 +26,7 @@ function SignUpContent() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const router = useRouter()
-  const { signUpWithEmail } = useAuth()
+  const { signUpWithEmail, signInWithGoogle } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,18 +77,7 @@ function SignUpContent() {
     setError(null)
 
     try {
-      const response = await fetch('/api/auth/google', {
-        method: 'POST',
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        // Redirect to Google OAuth
-        window.location.href = result.url
-      } else {
-        setError(result.error || 'Google sign up failed')
-      }
+      await signInWithGoogle()
     } catch (err) {
       setError('An error occurred with Google sign up.')
       console.error('Google sign up error:', err)

@@ -24,7 +24,7 @@ function SignInContent() {
   const [redirectTo, setRedirectTo] = useState('/profile')
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signInWithEmail } = useAuth()
+  const { signInWithEmail, signInWithGoogle } = useAuth()
 
   useEffect(() => {
     if (searchParams) {
@@ -64,18 +64,7 @@ function SignInContent() {
     setError(null)
 
     try {
-      const response = await fetch('/api/auth/google', {
-        method: 'POST',
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        // Redirect to Google OAuth
-        window.location.href = result.url
-      } else {
-        setError(result.error || 'Google sign in failed')
-      }
+      await signInWithGoogle()
     } catch (err) {
       setError('An error occurred with Google sign in.')
       console.error('Google sign in error:', err)

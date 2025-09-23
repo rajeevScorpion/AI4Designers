@@ -10,7 +10,10 @@
       "Bash(rm:*)",
       "Bash(npm run lint)",
       "Bash(npm run build:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
