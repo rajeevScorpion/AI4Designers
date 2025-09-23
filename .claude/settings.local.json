@@ -15,7 +15,13 @@
       "Bash(npx playwright test:*)",
       "Bash(cat:*)",
       "Bash(taskkill:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git push:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
