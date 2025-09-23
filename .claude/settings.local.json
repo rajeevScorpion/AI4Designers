@@ -6,7 +6,11 @@
       "Bash(npx supabase db push:*)",
       "Bash(node:*)",
       "Bash(npm run dev:*)",
-      "Bash(openssl:*)"
+      "Bash(openssl:*)",
+      "Bash(rm:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run build:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
