@@ -17,22 +17,26 @@ function AuthCallbackContent() {
     const processCallback = async () => {
       try {
         const code = searchParams.get('code')
+        const error = searchParams.get('error')
         const type = searchParams.get('type')
 
-        if (!code || !type) {
-          setError('Invalid callback parameters')
+        // Check for OAuth error
+        if (error) {
+          setError(`Authentication error: ${error}`)
           return
         }
 
-        const result = await handleAuthCallback(code, type)
+        if (!code) {
+          setError('Invalid callback parameters: No authorization code')
+          return
+        }
+
+        console.log('Processing auth callback with code, type:', type)
+        const result = await handleAuthCallback(code, type || 'signin')
 
         if (result.success) {
-          // Check if this is after sign up
-          if (type === 'signup') {
-            router.push('/profile')
-          } else {
-            router.push('/profile')
-          }
+          console.log('Authentication successful, redirecting to profile')
+          router.push('/profile')
         } else {
           setError(result.error || 'Authentication failed')
         }

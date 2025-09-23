@@ -4,7 +4,7 @@ test.describe('Google Authentication', () => {
   test.beforeEach(async ({ page }) => {
     // Clear cookies and localStorage before each test
     await page.context().clearCookies()
-    await page.goto('/')
+    await page.goto('http://localhost:3002')
   })
 
   test('should show Google sign-in button on sign-in page', async ({ page }) => {
@@ -32,7 +32,7 @@ test.describe('Google Authentication', () => {
     await page.click('button', { hasText: 'Sign in with Google' })
 
     // Wait for potential redirect or error
-    await page.waitForTimeout(2000)
+    await page.waitForTimeout(3000)
 
     // Should not show error message for missing API endpoint
     const errorAlert = page.locator('[role="alert"].destructive')
@@ -64,7 +64,7 @@ test.describe('Google Authentication', () => {
     expect(apiCallMade).toBe(false)
   })
 
-  test('should show loading state when clicking Google button', async ({ page }) => {
+  test('should show loading state and redirect to Google when clicking Google button', async ({ page }) => {
     await page.goto('/signin')
 
     const googleButton = page.locator('button', { hasText: 'Sign in with Google' })
@@ -75,12 +75,10 @@ test.describe('Google Authentication', () => {
     // Check if button shows loading state (should be disabled)
     await expect(googleButton).toBeDisabled()
 
-    // Wait a bit - the user should be redirected to Google OAuth
-    await page.waitForTimeout(2000)
+    // Wait for navigation to Google OAuth
+    await page.waitForURL(/https:\/\/accounts\.google\.com\/.*/)
 
-    // At this point, user should be redirected to Google or staying on page with button disabled
-    // The exact behavior depends on OAuth configuration
-    // For now, just verify the button was disabled during loading
-    console.log('Google OAuth flow initiated - user would be redirected to Google')
+    // Verify we've been redirected to Google
+    expect(page.url()).toContain('accounts.google.com')
   })
 })

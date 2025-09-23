@@ -144,10 +144,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
+      // Get the current site URL dynamically
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ||
+                     process.env.NEXT_PUBLIC_VERCEL_URL ||
+                     'http://localhost:3000'
+
+      const redirectUrl = `${siteUrl}/auth/callback`
+      console.log('Attempting Google OAuth with redirect to:', redirectUrl)
+
+      // Clear any existing auth state to prevent conflicts
+      await supabase.auth.signOut({ scope: 'global' })
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?type=signup`
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: false,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       })
 
@@ -157,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.url) {
+        console.log('Redirecting to Google OAuth URL:', data.url)
         window.location.href = data.url
       }
     } catch (error) {
@@ -183,6 +200,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleAuthCallback = async (code: string, type: string): Promise<AuthResult> => {
     try {
+      console.log('Processing auth callback, type:', type)
+
+      // For OAuth callbacks, Supabase should automatically handle the session
+      // Let's check if we already have a session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+      if (sessionError) {
+        console.error('Session check error:', sessionError)
+      }
+
+      if (session?.user) {
+        console.log('Session found after OAuth callback:', session.user.email)
+        setUser(session.user)
+        return { success: true, user: session.user }
+      }
+
+      // If no session, try to exchange the code
+      console.log('No session found, attempting code exchange...')
       const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
       if (error) {
@@ -191,11 +226,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.user) {
+        console.log('Code exchange successful:', data.user.email)
         setUser(data.user)
         return { success: true, user: data.user }
       }
 
-      return { success: false, error: 'Authentication failed' }
+      return { success: false, error: 'Authentication failed - no user returned' }
     } catch (error) {
       console.error('Callback error:', error)
       return { success: false, error: 'An unexpected error occurred' }
