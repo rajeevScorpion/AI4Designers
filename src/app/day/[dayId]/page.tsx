@@ -13,7 +13,7 @@ import { ClickableProgress } from "@/components/ui/clickable-progress"
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
 import { useConfetti } from "@/hooks/use-confetti"
 import { useRouter, useSearchParams } from "next/navigation"
-import type { CourseDay } from "@shared/schema"
+import type { CourseDay } from "@shared/types"
 import { courseData } from "@shared/courseData"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { LoginModal } from "@/components/login-modal"
@@ -413,7 +413,7 @@ export default function Day({ params }: DayProps) {
 
                 {section.type === 'video' && (
                   <TabbedVideoSection
-                    videos={section.videos || (section.videoUrl ? [{ title: section.title || 'Video', videoUrl: section.videoUrl, description: section.videoDescription }] : [])}
+                    videos={section.videos || (section.videoUrl ? [{ title: section.title || 'Video', videoUrl: section.videoUrl, duration: '0:00', description: section.videoDescription || '' }] : [])}
                     sectionId={section.id}
                     isCompleted={completedSections.includes(section.id)}
                     isAccessible={isSectionAccessible(currentPage)}

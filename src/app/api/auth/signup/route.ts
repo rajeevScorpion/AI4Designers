@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { users } from '@/shared/schema'
+import { createServiceClient } from '@/lib/supabase/service'
 import { authService } from '@/lib/auth-server'
 
 export async function POST(request: NextRequest) {
@@ -27,13 +26,14 @@ export async function POST(request: NextRequest) {
       // Create user record in database
       if (result.user) {
         try {
-          await db.insert(users).values({
+          const supabase = createServiceClient()
+          await supabase.from('users').upsert([{
             id: result.user.id,
             email: email,
-            firstName: firstName,
-            lastName: lastName,
-            fullName: `${firstName} ${lastName}`
-          })
+            first_name: firstName,
+            last_name: lastName,
+            full_name: `${firstName} ${lastName}`
+          }], { onConflict: 'id' })
         } catch (dbError) {
           console.error('Database user creation error:', dbError)
           // Don't fail the signup if database insert fails

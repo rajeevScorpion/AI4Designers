@@ -21,7 +21,12 @@
       "Bash(git pull:*)",
       "Bash(git merge:*)",
       "Bash(git push:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(npx drizzle-kit generate:pg:*)",
+      "Bash(npx drizzle-kit generate:*)",
+      "Bash(pkill:*)",
+      "Bash(ping:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

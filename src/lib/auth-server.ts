@@ -1,6 +1,4 @@
 import { createServiceClient } from '@/lib/supabase/service'
-import { db } from '@/lib/db'
-import { users } from '@/shared/schema'
 
 export interface SignUpData {
   firstName: string

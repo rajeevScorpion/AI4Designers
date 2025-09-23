@@ -1,5 +1,5 @@
 import { SlideViewer } from '../slide-viewer'
-import type { CourseSection } from '@shared/schema'
+import type { CourseSection } from '@shared/types'
 
 export default function SlideViewerExample() {
   const mockSections: CourseSection[] = [

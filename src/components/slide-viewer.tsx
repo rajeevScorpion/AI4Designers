@@ -7,7 +7,7 @@ import { SectionContent } from "@/components/section-content"
 import { ActivitySection } from "@/components/activity-section"
 import { QuizSection } from "@/components/quiz-section"
 import { ChevronLeft, ChevronRight, CheckCircle, BookOpen } from "lucide-react"
-import type { CourseSection } from "@shared/schema"
+import type { CourseSection } from "@shared/types"
 import { useCourse } from "@/contexts/CourseContext"
 
 interface SlideViewerProps {

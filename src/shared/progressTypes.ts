@@ -28,7 +28,7 @@ export interface SessionState {
 // Storage utility types
 export interface StorageError {
   message: string
-  code: 'QUOTA_EXCEEDED' | 'ACCESS_DENIED' | 'DATA_CORRUPTED' | 'UNKNOWN'
+  code: 'QUOTA_EXCEEDED' | 'ACCESS_DENIED' | 'DATA_CORRUPTED' | 'UNKNOWN' | 'UNAUTHORIZED' | 'API_ERROR' | 'NETWORK_ERROR'
 }
 
 export type StorageResult<T> =

@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, ExternalLink, Star, Wrench } from "lucide-react"
-import type { Activity } from "@shared/schema"
+import type { Activity } from "@shared/types"
 import { smoothScrollToTop } from "@/lib/smooth-scroll"
 
 interface ActivitySectionProps {

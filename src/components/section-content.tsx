@@ -7,7 +7,7 @@ import {
   Code2, Palette, Image, Wand2, Database, Cloud, Shield, TrendingUp
 } from "lucide-react"
 import { ConceptCard } from "@/components/concept-card"
-import type { CourseSection } from "@shared/schema"
+import type { CourseSection } from "@shared/types"
 import type { LucideIcon } from "lucide-react"
 import { smoothScrollToTop } from "@/lib/smooth-scroll"
 

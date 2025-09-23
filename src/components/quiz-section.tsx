@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { CheckCircle, Brain, AlertCircle, Award, Info, ArrowRight } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import type { Quiz } from "@shared/schema"
+import type { Quiz } from "@shared/types"
 import { useCourse } from "@/contexts/CourseContext"
 
 interface QuizSectionProps {

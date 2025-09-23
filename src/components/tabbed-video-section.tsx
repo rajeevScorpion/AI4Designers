@@ -3,11 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Clock, PlayCircle } from "lucide-react"
-import type { VideoResource } from "@shared/schema"
+import type { Video } from "@shared/types"
 import { smoothScrollToTop } from "@/lib/smooth-scroll"
 
 interface TabbedVideoSectionProps {
-  videos: VideoResource[];
+  videos: Video[];
   sectionId: string;
   isCompleted: boolean;
   isAccessible: boolean;

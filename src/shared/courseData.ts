@@ -1,4 +1,4 @@
-import type { CourseSection } from "./schema";
+import type { CourseSection } from "../../shared/types";
 
 export const courseData: Record<number, CourseSection[]> = {
   1: [

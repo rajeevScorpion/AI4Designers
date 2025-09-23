@@ -1,8 +1,8 @@
 'use client'
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
+import { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react'
 import { UserProgress, DayProgress, SessionState } from '@/shared/progressTypes'
-import progressStorage from '@/lib/progressStorage'
+import progressStorage, { AuthState, SyncResult } from '@/lib/progressStorage'
 
 interface CourseContextType {
   // Current day state
@@ -19,6 +19,20 @@ interface CourseContextType {
   // Session management
   sessionState: SessionState
   updateSessionState: (updates: Partial<SessionState>) => void
+
+  // Authentication state
+  authState: AuthState
+  setAuthState: (authState: AuthState) => void
+
+  // Sync functionality
+  syncProgress: () => Promise<SyncResult>
+  loadRemoteProgress: () => Promise<void>
+  getSyncStatus: () => {
+    isSyncing: boolean
+    isOnline: boolean
+    isAuthenticated: boolean
+    queueLength: number
+  }
 
   // Utility functions
   resetDayProgress: (dayId: number) => void
@@ -38,12 +52,36 @@ export function CourseProvider({ children }: { children: ReactNode }) {
     currentDay: null,
     navigationHistory: []
   })
+  const [authState, setAuthState] = useState<AuthState>({ isAuthenticated: false })
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load progress on mount
+  // Load remote progress function
+  const loadRemoteProgress = useCallback(async (): Promise<void> => {
+    if (!authState.isAuthenticated) return
+
+    setIsLoading(true)
+    try {
+      const result = await progressStorage.loadRemoteProgress()
+      if (result.success && result.data) {
+        setUserProgress(result.data)
+        setCurrentDay(result.data.currentDay)
+      }
+    } catch (error) {
+      console.error('Failed to load remote progress:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [authState.isAuthenticated])
+
+  // Initialize auth state and load progress
   useEffect(() => {
-    const loadProgress = () => {
-      // Load user progress
+    const initializeApp = async () => {
+      setIsLoading(true)
+
+      // Initialize auth state in storage
+      progressStorage.setAuthState(authState)
+
+      // Load user progress from localStorage first
       const progressResult = progressStorage.getUserProgress()
       if (progressResult.success) {
         setUserProgress(progressResult.data)
@@ -59,8 +97,42 @@ export function CourseProvider({ children }: { children: ReactNode }) {
       setIsLoading(false)
     }
 
-    loadProgress()
-  }, [])
+    initializeApp()
+  }, [authState])
+
+  // Load remote progress when user authenticates
+  useEffect(() => {
+    if (authState.isAuthenticated) {
+      loadRemoteProgress()
+    }
+  }, [authState.isAuthenticated, loadRemoteProgress])
+
+  // Update storage auth state when auth state changes
+  useEffect(() => {
+    progressStorage.setAuthState(authState)
+  }, [authState])
+
+  // Handle online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      if (authState.isAuthenticated) {
+        syncProgress()
+      }
+    }
+
+    const handleOffline = () => {
+      // Handle offline state - could show offline indicator
+      console.log('App is offline - changes will be queued for sync')
+    }
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [authState.isAuthenticated])
 
   // Update progress when it changes
   const updateProgress = (newProgress: UserProgress) => {
@@ -107,6 +179,15 @@ export function CourseProvider({ children }: { children: ReactNode }) {
     const newSessionState = { ...sessionState, ...updates }
     setSessionState(newSessionState)
     progressStorage.saveSessionState(newSessionState)
+  }
+
+  // Sync functionality
+  const syncProgress = async (): Promise<SyncResult> => {
+    return await progressStorage.syncProgress()
+  }
+
+  const getSyncStatus = () => {
+    return progressStorage.getSyncStatus()
   }
 
   const resetDayProgress = (dayId: number) => {
@@ -159,6 +240,11 @@ export function CourseProvider({ children }: { children: ReactNode }) {
     getDayProgress,
     sessionState,
     updateSessionState,
+    authState,
+    setAuthState,
+    syncProgress,
+    loadRemoteProgress,
+    getSyncStatus,
     resetDayProgress,
     clearAllProgress,
     exportProgress,

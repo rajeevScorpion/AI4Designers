@@ -16,8 +16,7 @@ npm run start        # Production server
 npm run lint         # Run ESLint
 
 # Database
-npm run db:push      # Push schema changes to database (uses Drizzle)
-npx drizzle-kit generate # Generate migrations
+# Schema changes are managed through Supabase dashboard
 
 # Testing
 npx playwright test # Run E2E tests (no tests currently implemented)
@@ -38,12 +37,11 @@ npx playwright test # Run E2E tests (no tests currently implemented)
 - `src/contexts/` - React contexts for state management
 - `src/lib/` - Utility functions and helpers
 - `src/shared/` - Shared types and data definitions
-- `shared/` - Database schema and course data
-- `supabase/` - Database migrations
+- `shared/` - Course data only
 
 ### Database & Backend
 - **PostgreSQL** database (Supabase)
-- **Drizzle ORM** for type-safe database operations
+- **Supabase client** for database operations
 - **Next.js API routes** for server endpoints
 - Authentication currently disabled (demo mode)
 
@@ -63,7 +61,7 @@ The application serves a structured 5-day curriculum with:
 - To enable full functionality, implement authentication in `src/lib/auth.ts`
 
 ### Database Schema
-Core tables in `shared/schema.ts`:
+Core tables (managed via Supabase dashboard):
 - `users` - User profiles
 - `sessions` - Session management
 - `userProgress` - Course completion tracking
@@ -79,19 +77,19 @@ Core tables in `shared/schema.ts`:
 ### API Routes
 - All API routes in `src/app/api/`
 - Currently returns mock data for demo mode
-- Integration with Supabase configured but not active
+- Uses Supabase client for all database operations
 
 ## Development Notes
 
 ### Environment Variables Required
-- `DATABASE_URL` - PostgreSQL connection string
-- `SESSION_SECRET` - For session management
-- Supabase credentials (configured for production)
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (server only)
 
 ### Building for Production
 - Run `npm run build` to create optimized build
 - Deploy to Vercel (configuration in `vercel.json`)
-- Database migrations must be applied separately
+- Schema changes must be applied via Supabase dashboard
 
 ### Code Patterns
 - Use TypeScript paths: `@/components`, `@/lib`, etc.
@@ -103,4 +101,3 @@ Core tables in `shared/schema.ts`:
 - No E2E tests implemented (Playwright configured)
 - Authentication system disabled
 - User progress tracking non-functional
-- Database schema defined but not fully utilized
