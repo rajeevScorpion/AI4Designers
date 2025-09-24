@@ -31,9 +31,8 @@ export interface AuthResult {
 export async function authenticateRequest(request: NextRequest, options: {
   requireAuth?: boolean
   allowServiceRole?: boolean
-  allowAnonymous?: boolean
 } = {}): Promise<AuthResult> {
-  const { requireAuth = false, allowServiceRole = true, allowAnonymous = false } = options
+  const { requireAuth = true, allowServiceRole = true } = options
 
   try {
     // Strategy 1: Check for service role key (for testing/admin)
@@ -73,29 +72,10 @@ export async function authenticateRequest(request: NextRequest, options: {
       }
     }
 
-    // Strategy 3: Anonymous access (if allowed)
-    if (allowAnonymous && !requireAuth) {
-      return {
-        success: true,
-        user: {
-          id: '00000000-0000-0000-0000-000000000000',
-          email: 'anonymous@ai4designers.local',
-          user_metadata: { role: 'anonymous' }
-        }
-      }
-    }
-
     // No valid authentication found
-    if (requireAuth) {
-      return {
-        success: false,
-        error: 'Authentication required'
-      }
-    }
-
     return {
       success: false,
-      error: 'Unauthorized'
+      error: 'Authentication required'
     }
   } catch (error) {
     console.error('Authentication error:', error)

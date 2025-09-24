@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +9,7 @@ import { CheckCircle, Circle, Clock, ArrowRight, BookOpen, Users, Award } from "
 import { useRouter } from "next/navigation"
 import { CoursePreviewModal } from "@/components/course-preview-modal"
 import { useAuth } from "@/contexts/AuthContext"
+import { createClient } from "@/lib/supabase/client"
 
 interface Day {
   id: number
@@ -26,9 +27,42 @@ export default function Home() {
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
-  // Static demo data - no authentication
-  const completedDays = 0
-  const overallProgress = 0
+  const [userProgress, setUserProgress] = useState<any>(null)
+  const [progressLoading, setProgressLoading] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProgress()
+    }
+  }, [user])
+
+  const fetchUserProgress = async () => {
+    if (!user) return
+
+    setProgressLoading(true)
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      const response = await fetch('/api/progress', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setUserProgress(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch user progress:', error)
+    } finally {
+      setProgressLoading(false)
+    }
+  }
+
+  const completedDays = userProgress?.overallProgress?.totalDaysCompleted || 0
+  const overallProgress = userProgress ? Math.round((completedDays / 5) * 100) : 0
 
   const days: Day[] = [
     {
@@ -36,45 +70,45 @@ export default function Home() {
       title: "Introduction to AI & Design",
       description: "Explore the fundamentals of AI and how it's transforming the design industry. Learn key concepts and terminology.",
       estimatedTime: "30 min",
-      isCompleted: false,
-      isActive: false,
-      progress: 0
+      isCompleted: userProgress?.days?.['1']?.completionPercentage === 100,
+      isActive: userProgress?.currentDay === 1,
+      progress: userProgress?.days?.['1']?.completionPercentage || 0
     },
     {
       id: 2,
       title: "Understanding AI Tools for Designers",
       description: "Discover popular AI tools and platforms used by designers today. Get hands-on experience with leading platforms.",
       estimatedTime: "45 min",
-      isCompleted: false,
-      isActive: false,
-      progress: 0
+      isCompleted: userProgress?.days?.['2']?.completionPercentage === 100,
+      isActive: userProgress?.currentDay === 2,
+      progress: userProgress?.days?.['2']?.completionPercentage || 0
     },
     {
       id: 3,
       title: "Generative AI for Visual Design",
       description: "Learn how to use AI for creating images, graphics, and visual content. Master prompt engineering techniques.",
       estimatedTime: "60 min",
-      isCompleted: false,
-      isActive: false,
-      progress: 0
+      isCompleted: userProgress?.days?.['3']?.completionPercentage === 100,
+      isActive: userProgress?.currentDay === 3,
+      progress: userProgress?.days?.['3']?.completionPercentage || 0
     },
     {
       id: 4,
       title: "AI-Powered Design Workflows",
       description: "Integrate AI into your design process for enhanced productivity. Build efficient AI-assisted workflows.",
       estimatedTime: "50 min",
-      isCompleted: false,
-      isActive: false,
-      progress: 0
+      isCompleted: userProgress?.days?.['4']?.completionPercentage === 100,
+      isActive: userProgress?.currentDay === 4,
+      progress: userProgress?.days?.['4']?.completionPercentage || 0
     },
     {
       id: 5,
       title: "Future of AI in Design",
       description: "Explore emerging trends and prepare for the future of AI-assisted design. Ethics and best practices.",
       estimatedTime: "40 min",
-      isCompleted: false,
-      isActive: false,
-      progress: 0
+      isCompleted: userProgress?.days?.['5']?.completionPercentage === 100,
+      isActive: userProgress?.currentDay === 5,
+      progress: userProgress?.days?.['5']?.completionPercentage || 0
     }
   ]
 
@@ -351,8 +385,51 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Course Progress Overview - Hidden as authentication is disabled */}
-      {/* Progress tracking is disabled as authentication has been removed */}
+      {/* Course Progress Overview */}
+      {user && (
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg p-6 border">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Your Progress</h3>
+                <p className="text-sm text-muted-foreground">
+                  Keep going! You're making great progress.
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">{completedDays}/5</div>
+                  <div className="text-xs text-muted-foreground">Days Completed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-chart-3">{overallProgress}%</div>
+                  <div className="text-xs text-muted-foreground">Overall Progress</div>
+                </div>
+                <Button
+                  onClick={() => router.push('/certificate')}
+                  disabled={completedDays < 5}
+                  size="sm"
+                >
+                  <Award className="w-4 h-4 mr-2" />
+                  Get Certificate
+                </Button>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                <span>Course Progress</span>
+                <span>{overallProgress}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-primary to-chart-3 rounded-full h-2 transition-all duration-300"
+                  style={{ width: `${overallProgress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Course Curriculum */}
       <div className="max-w-6xl mx-auto px-6 py-8">

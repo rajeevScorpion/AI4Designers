@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 export async function GET() {
   try {
     const supabase = createServiceClient()
-    const results = {}
+    const results: Record<string, any> = {}
 
     // Test different table name variations
     const tableVariations = [

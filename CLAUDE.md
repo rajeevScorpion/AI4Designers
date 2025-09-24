@@ -43,7 +43,7 @@ npx playwright test # Run E2E tests (no tests currently implemented)
 - **PostgreSQL** database (Supabase)
 - **Supabase client** for database operations
 - **Next.js API routes** for server endpoints
-- Authentication currently disabled (demo mode)
+- Google OAuth authentication enabled
 
 ### Course Content System
 The application serves a structured 5-day curriculum with:
@@ -51,22 +51,22 @@ The application serves a structured 5-day curriculum with:
 - Embedded YouTube videos
 - Knowledge check quizzes
 - Hands-on activities using external platforms
-- Progress tracking (currently disabled)
+- Progress tracking (fully functional)
 
 ## Important Technical Details
 
 ### Authentication Status
-- The app runs in **demo mode** with authentication disabled
-- All user progress features are non-functional
-- To enable full functionality, implement authentication in `src/lib/auth.ts`
+- The app runs in **production mode** with authentication enabled
+- All user progress features are fully functional
+- Google OAuth authentication implemented and working
 
 ### Database Schema
 Core tables (managed via Supabase dashboard):
 - `users` - User profiles
 - `sessions` - Session management
-- `userProgress` - Course completion tracking
-- `userBadges` - Achievement system
-- `userCertificates` - Completion certificates
+- `user_progress` - Course completion tracking
+- `user_badges` - Achievement system
+- `user_certificates` - Completion certificates
 
 ### Styling System
 - Custom color palette defined in `tailwind.config.ts`
@@ -76,8 +76,8 @@ Core tables (managed via Supabase dashboard):
 
 ### API Routes
 - All API routes in `src/app/api/`
-- Currently returns mock data for demo mode
 - Uses Supabase client for all database operations
+- All endpoints require proper authentication
 
 ## Development Notes
 
@@ -99,5 +99,3 @@ Core tables (managed via Supabase dashboard):
 
 ### Current Limitations
 - No E2E tests implemented (Playwright configured)
-- Authentication system disabled
-- User progress tracking non-functional

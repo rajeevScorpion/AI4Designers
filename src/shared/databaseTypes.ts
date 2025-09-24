@@ -162,11 +162,11 @@ export function transformApiToDatabaseUser(user: Partial<CreateUserRequest> & { 
   return {
     id: user.id,
     email: user.email,
-    fullname: user.fullName || user.fullname,
+    fullname: user.fullname,
     phone: user.phone,
     profession: user.profession,
     organization: user.organization,
-    date_of_birth: user.dateOfBirth || user.date_of_birth,
+    date_of_birth: user.date_of_birth,
   };
 }
 

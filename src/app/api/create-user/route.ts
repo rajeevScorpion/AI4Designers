@@ -8,10 +8,9 @@ export async function POST(request: NextRequest) {
   if (corsResponse) return corsResponse
 
   try {
-    // Authenticate with multiple strategies (allow service role for testing)
+    // Authenticate with proper authentication
     const authResult = await authenticateRequest(request, {
-      allowServiceRole: true,
-      allowAnonymous: true // Allow anonymous for testing
+      allowServiceRole: false // Require proper authentication for production
     })
 
     if (!authResult.success || !authResult.user) {

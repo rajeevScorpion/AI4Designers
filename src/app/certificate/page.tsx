@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,13 +10,73 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Download, Share2, Award, Calendar, CheckCircle } from "lucide-react"
 
 export default function Certificate() {
+  const { user, loading } = useAuth()
   const [isGenerating, setIsGenerating] = useState(false)
+  const [userProgress, setUserProgress] = useState<any>(null)
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProgress()
+    }
+  }, [user])
+
+  const fetchUserProgress = async () => {
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      const response = await fetch('/api/progress', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setUserProgress(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch user progress:', error)
+    }
+  }
 
   const generateCertificate = async () => {
+    if (!user) return
+
     setIsGenerating(true)
     try {
-      // Static demo - certificate generation is disabled
-      console.log('Certificate generation disabled - authentication removed')
+      // Check if user has completed all days
+      const completedDays = userProgress?.overallProgress?.totalDaysCompleted || 0
+      if (completedDays < 5) {
+        alert('You must complete all 5 days to generate a certificate')
+        return
+      }
+
+      // Get auth token
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      // Generate certificate
+      const response = await fetch('/api/generate-certificate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `ai-fundamentals-certificate-${user.id}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }
     } catch (err) {
       console.error("Failed to generate certificate:", err)
     } finally {
@@ -39,10 +101,39 @@ export default function Certificate() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="text-center space-y-4">
+            <h1 className="text-3xl font-bold">Certificate of Completion</h1>
+            <p className="text-muted-foreground">
+              Please sign in to access your certificate
+            </p>
+            <Button onClick={() => window.location.href = '/signin'}>
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const completedDays = userProgress?.overallProgress?.totalDaysCompleted || 0
+  const canGenerateCertificate = completedDays >= 5
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto space-y-6">
-  
+
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Certificate of Completion</h1>
@@ -73,7 +164,7 @@ export default function Certificate() {
                   </p>
                   <div className="py-4 px-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm inline-block">
                     <h3 className="text-3xl font-bold text-primary">
-                      Demo Student
+                      {user.user_metadata?.full_name || user.user_metadata?.fullName || user.email}
                     </h3>
                   </div>
                   <p className="text-lg text-gray-600 dark:text-gray-300">
@@ -106,16 +197,25 @@ export default function Certificate() {
           </CardContent>
         </Card>
 
+        {/* Progress Info */}
+        {!canGenerateCertificate && (
+          <Alert>
+            <AlertDescription>
+              Complete all 5 days of the course to generate your certificate.
+              Current progress: {completedDays}/5 days completed.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
             onClick={generateCertificate}
-            disabled
+            disabled={!canGenerateCertificate || isGenerating}
             size="lg"
-            variant="outline"
           >
             <Download className="w-4 h-4 mr-2" />
-            Download Certificate (Disabled)
+            {isGenerating ? 'Generating...' : 'Download Certificate'}
           </Button>
           <Button
             onClick={shareCertificate}
@@ -126,13 +226,6 @@ export default function Certificate() {
             Share Achievement
           </Button>
         </div>
-
-        {/* Verification Info */}
-        <Alert>
-          <AlertDescription>
-            This is a demo certificate. Certificate generation requires authentication which has been disabled.
-          </AlertDescription>
-        </Alert>
       </div>
     </div>
   )

@@ -125,7 +125,7 @@ export class TestApi {
     }
   }
 
-  async getProgress() {
+  async getProgressData() {
     const supabase = createServiceClient()
     try {
       const { data, error } = await supabase

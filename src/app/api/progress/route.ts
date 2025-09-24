@@ -80,10 +80,9 @@ export async function GET(request: NextRequest) {
   const supabase = createServiceClient()
 
   try {
-    // Authenticate with multiple strategies (allow service role for testing)
+    // Authenticate with proper authentication
     const authResult = await authenticateRequest(request, {
-      allowServiceRole: true,
-      allowAnonymous: true // Allow anonymous for testing
+      allowServiceRole: false // Disable service role for production
     })
 
     if (!authResult.success || !authResult.user) {
@@ -155,8 +154,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const authResult = await authenticateRequest(request, {
-      allowServiceRole: true,
-      allowAnonymous: true // Allow anonymous for testing
+      allowServiceRole: false // Require proper authentication for production
     })
 
     if (!authResult.success || !authResult.user) {
@@ -302,8 +300,8 @@ export async function POST(request: NextRequest) {
     const { data: updatedProgress } = await supabase
       .from('user_progress')
       .update({
-        completed_sections,
-        completed_slides,
+        completed_sections: completedSections,
+        completed_slides: completedSlides,
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', userId)
