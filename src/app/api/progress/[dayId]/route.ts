@@ -48,10 +48,10 @@ export async function GET(
 
     const supabase = createServiceClient()
     const { data: progress } = await supabase
-      .from('userProgress')
+      .from('user_progress')
       .select('*')
-      .eq('userId', userId)
-      .eq('dayId', dayId)
+      .eq('user_id', userId)
+      .eq('day_id', dayId)
       .limit(1)
 
     return NextResponse.json(progress?.[0] || null)
@@ -91,10 +91,10 @@ export async function POST(
       // Mark day as complete
       const supabase = createServiceClient()
       const { data: progress } = await supabase
-        .from('userProgress')
+        .from('user_progress')
         .select('*')
-        .eq('userId', userId)
-        .eq('dayId', dayId)
+        .eq('user_id', userId)
+        .eq('day_id', dayId)
         .limit(1)
 
       if (!progress || progress.length === 0) {
@@ -107,7 +107,7 @@ export async function POST(
       const currentProgress = progress[0]
 
       // Check if all sections are completed
-      if (!currentProgress.completedSections || currentProgress.completedSections.length === 0) {
+      if (!currentProgress.completed_sections || currentProgress.completed_sections.length === 0) {
         return NextResponse.json(
           { error: 'Day cannot be completed. No sections completed.' },
           { status: 400 }
@@ -116,35 +116,31 @@ export async function POST(
 
       // Update progress
       const { data: updatedProgress } = await supabase
-        .from('userProgress')
+        .from('user_progress')
         .update({
-          isCompleted: true,
-          completedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          is_completed: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         })
-        .eq('userId', userId)
-        .eq('dayId', dayId)
+        .eq('user_id', userId)
+        .eq('day_id', dayId)
         .select()
 
       // Award badge if not already awarded
       const { data: existingBadge } = await supabase
-        .from('userBadges')
+        .from('user_badges')
         .select('id')
-        .eq('userId', userId)
-        .eq('badgeType', 'day_complete')
+        .eq('user_id', userId)
+        .eq('badge_id', 'day_complete')
         .limit(1)
 
       if (!existingBadge || existingBadge.length === 0) {
-        await supabase.from('userBadges').insert([{
-          userId,
-          badgeType: 'day_complete',
-          badgeData: {
-            dayId: dayId,
-            title: `Day ${dayId} Complete`,
-            description: `Completed all activities for Day ${dayId}`,
-            iconName: 'check-circle',
-            color: 'green',
-          },
+        await supabase.from('user_badges').insert([{
+          user_id: userId,
+          badge_id: 'day_complete',
+          badge_name: `Day ${dayId} Complete`,
+          badge_description: `Completed all activities for Day ${dayId}`,
+          badge_icon: 'check-circle',
         }])
       }
 
@@ -162,10 +158,10 @@ export async function POST(
     // Get existing progress or create new
     const supabase = createServiceClient()
     const { data: existingProgress } = await supabase
-      .from('userProgress')
+      .from('user_progress')
       .select('*')
-      .eq('userId', userId)
-      .eq('dayId', dayId)
+      .eq('user_id', userId)
+      .eq('day_id', dayId)
       .limit(1)
 
     let currentProgress
@@ -174,15 +170,15 @@ export async function POST(
     } else {
       // Create new progress record
       const { data: newProgress } = await supabase
-        .from('userProgress')
+        .from('user_progress')
         .insert([{
-          userId,
-          dayId,
-          completedSections: [],
-          completedSlides: [],
-          quizScores: {},
-          currentSlide: 0,
-          isCompleted: false,
+          user_id: userId,
+          day_id: dayId,
+          completed_sections: [],
+          completed_slides: [],
+          quiz_scores: {},
+          current_slide: 0,
+          is_completed: false,
         }])
         .select()
 
@@ -198,12 +194,12 @@ export async function POST(
 
     // Update progress data
     const updates: any = {
-      updatedAt: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
 
     if (slideId !== undefined && completed !== undefined) {
-      const completedSections = [...(currentProgress.completedSections || [])]
-      const completedSlides = [...(currentProgress.completedSlides || [])]
+      const completedSections = [...(currentProgress.completed_sections || [])]
+      const completedSlides = [...(currentProgress.completed_slides || [])]
 
       if (completed && !completedSections.includes(slideId)) {
         completedSections.push(slideId)
@@ -224,21 +220,21 @@ export async function POST(
     }
 
     if (quizScores !== undefined) {
-      updates.quizScores = {
-        ...(currentProgress.quizScores || {}),
+      updates.quiz_scores = {
+        ...(currentProgress.quiz_scores || {}),
         ...quizScores,
       }
     }
 
     if (currentSlide !== undefined) {
-      updates.currentSlide = currentSlide
+      updates.current_slide = currentSlide
     }
 
     const { data: updatedProgress } = await supabase
-      .from('userProgress')
+      .from('user_progress')
       .update(updates)
-      .eq('userId', userId)
-      .eq('dayId', dayId)
+      .eq('user_id', userId)
+      .eq('day_id', dayId)
       .select()
 
     return NextResponse.json({

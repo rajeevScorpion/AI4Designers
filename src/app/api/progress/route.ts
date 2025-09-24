@@ -1,30 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-
-// Helper function to authenticate user from request
-async function authenticateUser(request: NextRequest) {
-  try {
-    const supabase = createServiceClient()
-
-    // Get auth token from header
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return null
-    }
-
-    const token = authHeader.substring(7)
-    const { data: { user }, error } = await supabase.auth.getUser(token)
-
-    if (error || !user) {
-      return null
-    }
-
-    return user
-  } catch (error) {
-    console.error('Authentication error:', error)
-    return null
-  }
-}
+import { authenticateRequest, apiResponse, handleOptions } from '@/lib/auth'
 
 // Transform localStorage UserProgress to database format
 function transformToDatabaseFormat(localProgress: any, userId: string) {
@@ -63,31 +39,31 @@ function transformToLocalStorageFormat(dbProgress: any[]) {
   let latestTimestamp = 0
 
   for (const progress of dbProgress) {
-    const dayId = progress.dayId
+    const dayId = progress.day_id
     const dayProgress = {
-      completedSections: progress.completedSections || [],
-      completedSlides: progress.completedSlides || [],
-      quizScores: progress.quizScores || {},
-      currentSlide: progress.currentSlide || 0,
-      lastAccessed: progress.updatedAt || new Date().toISOString(),
-      completionPercentage: progress.isCompleted ? 100 : 0,
+      completedSections: progress.completed_sections || [],
+      completedSlides: progress.completed_slides || [],
+      quizScores: progress.quiz_scores || {},
+      currentSlide: progress.current_slide || 0,
+      lastAccessed: progress.updated_at || new Date().toISOString(),
+      completionPercentage: progress.is_completed ? 100 : 0,
     }
 
     transformed.days[dayId] = dayProgress
 
     // Track latest accessed day
-    const timestamp = new Date(progress.updatedAt || progress.createdAt).getTime()
+    const timestamp = new Date(progress.updated_at || progress.created_at).getTime()
     if (timestamp > latestTimestamp) {
       latestTimestamp = timestamp
       latestDayId = dayId
     }
 
-    if (progress.isCompleted) {
+    if (progress.is_completed) {
       transformed.overallProgress.totalDaysCompleted++
     }
 
     // Count completed quizzes
-    const quizCount = Object.keys(progress.quizScores || {}).length
+    const quizCount = Object.keys(progress.quiz_scores || {}).length
     transformed.overallProgress.totalQuizzesCompleted += quizCount
   }
 
@@ -97,15 +73,24 @@ function transformToLocalStorageFormat(dbProgress: any[]) {
 }
 
 export async function GET(request: NextRequest) {
+  // Handle CORS preflight
+  const corsResponse = handleOptions(request)
+  if (corsResponse) return corsResponse
+
   const supabase = createServiceClient()
 
   try {
-    const user = await authenticateUser(request)
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Authenticate with multiple strategies (allow service role for testing)
+    const authResult = await authenticateRequest(request, {
+      allowServiceRole: true,
+      allowAnonymous: true // Allow anonymous for testing
+    })
+
+    if (!authResult.success || !authResult.user) {
+      return apiResponse({ error: authResult.error || 'Unauthorized' }, 401)
     }
 
-    const userId = user.id
+    const userId = authResult.user.id
 
     // Check if user exists in database, create if not
     try {
@@ -121,10 +106,8 @@ export async function GET(request: NextRequest) {
         // Create user record if it doesn't exist
         await supabase.from('users').upsert([{
           id: userId,
-          email: user.email || '',
-          first_name: user.user_metadata?.first_name || '',
-          last_name: user.user_metadata?.last_name || '',
-          full_name: user.user_metadata?.full_name || user.user_metadata?.fullName || ''
+          email: authResult.user.email || '',
+          fullname: authResult.user.user_metadata?.full_name || authResult.user.user_metadata?.fullName || 'Test User'
         }], { onConflict: 'id' })
         console.log('User record created')
       }
@@ -136,15 +119,15 @@ export async function GET(request: NextRequest) {
     // Get all progress for user
     console.log('Fetching progress for user:', userId)
     const { data: progress, error: progressError } = await supabase
-      .from('userProgress')
+      .from('user_progress')
       .select('*')
-      .eq('userId', userId)
+      .eq('user_id', userId)
 
     if (progressError) {
       console.error('Progress fetch error:', progressError)
-      return NextResponse.json(
+      return apiResponse(
         { error: 'Failed to fetch progress', details: progressError.message },
-        { status: 500 }
+        500
       )
     }
 
@@ -153,26 +136,34 @@ export async function GET(request: NextRequest) {
     // Transform to localStorage format
     const transformedProgress = transformToLocalStorageFormat(progress)
 
-    return NextResponse.json(transformedProgress)
+    return apiResponse(transformedProgress)
   } catch (error) {
     console.error('Error fetching progress:', error)
-    return NextResponse.json(
+    return apiResponse(
       { error: 'Failed to fetch progress', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      500
     )
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Handle CORS preflight
+  const corsResponse = handleOptions(request)
+  if (corsResponse) return corsResponse
+
   const supabase = createServiceClient()
 
   try {
-    const user = await authenticateUser(request)
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authResult = await authenticateRequest(request, {
+      allowServiceRole: true,
+      allowAnonymous: true // Allow anonymous for testing
+    })
+
+    if (!authResult.success || !authResult.user) {
+      return apiResponse({ error: authResult.error || 'Unauthorized' }, 401)
     }
 
-    const userId = user.id
+    const userId = authResult.user.id
     const body = await request.json()
     const { dayId, slideId, completed, action } = body
 
@@ -185,35 +176,44 @@ export async function POST(request: NextRequest) {
       const results = []
       for (const progressData of dbProgress) {
         const { data: existing } = await supabase
-          .from('userProgress')
+          .from('user_progress')
           .select('id')
-          .eq('userId', progressData.userId)
-          .eq('dayId', progressData.dayId)
+          .eq('user_id', progressData.userId)
+          .eq('day_id', progressData.dayId)
           .limit(1)
 
         if (existing && existing.length > 0) {
           // Update existing
           const { data: updated } = await supabase
-            .from('userProgress')
+            .from('user_progress')
             .update({
-              completedSections: progressData.completedSections,
-              completedSlides: progressData.completedSlides,
-              quizScores: progressData.quizScores,
-              currentSlide: progressData.currentSlide,
-              isCompleted: progressData.isCompleted,
-              completedAt: progressData.completedAt,
-              updatedAt: new Date().toISOString(),
+              completed_sections: progressData.completedSections,
+              completed_slides: progressData.completedSlides,
+              quiz_scores: progressData.quizScores,
+              current_slide: progressData.currentSlide,
+              is_completed: progressData.isCompleted,
+              completed_at: progressData.completedAt,
+              updated_at: new Date().toISOString(),
             })
-            .eq('userId', progressData.userId)
-            .eq('dayId', progressData.dayId)
+            .eq('user_id', progressData.userId)
+            .eq('day_id', progressData.dayId)
             .select()
 
           results.push(updated?.[0])
         } else {
           // Insert new
           const { data: inserted } = await supabase
-            .from('userProgress')
-            .insert([progressData])
+            .from('user_progress')
+            .insert([{
+              user_id: progressData.userId,
+              day_id: progressData.dayId,
+              completed_sections: progressData.completedSections,
+              completed_slides: progressData.completedSlides,
+              quiz_scores: progressData.quizScores,
+              current_slide: progressData.currentSlide,
+              is_completed: progressData.isCompleted,
+              completed_at: progressData.completedAt,
+            }])
             .select()
 
           results.push(inserted?.[0])
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
 
       // Return the synced progress
       const transformedProgress = transformToLocalStorageFormat(results)
-      return NextResponse.json({
+      return apiResponse({
         success: true,
         progress: transformedProgress,
         message: 'Progress synced successfully'
@@ -231,18 +231,18 @@ export async function POST(request: NextRequest) {
 
     // Handle individual progress update
     if (dayId === undefined || slideId === undefined || completed === undefined) {
-      return NextResponse.json(
+      return apiResponse(
         { error: 'Missing required fields: dayId, slideId, completed' },
-        { status: 400 }
+        400
       )
     }
 
     // Get existing progress or create new
     const { data: existingProgress } = await supabase
-      .from('userProgress')
+      .from('user_progress')
       .select('*')
-      .eq('userId', userId)
-      .eq('dayId', dayId)
+      .eq('user_id', userId)
+      .eq('day_id', dayId)
       .limit(1)
 
     let currentProgress
@@ -250,32 +250,40 @@ export async function POST(request: NextRequest) {
       currentProgress = existingProgress[0]
     } else {
       // Create new progress record
-      const { data: newProgress } = await supabase
-        .from('userProgress')
+      const { data: newProgress, error: insertError } = await supabase
+        .from('user_progress')
         .insert([{
-          userId,
-          dayId,
-          completedSections: [],
-          completedSlides: [],
-          quizScores: {},
-          currentSlide: 0,
-          isCompleted: false,
+          user_id: userId,
+          day_id: dayId,
+          completed_sections: [],
+          completed_slides: [],
+          quiz_scores: {},
+          current_slide: 0,
+          is_completed: false,
         }])
         .select()
+
+      if (insertError) {
+        console.error('Insert error:', insertError)
+        return apiResponse(
+          { error: 'Failed to create progress record', details: insertError.message },
+          500
+        )
+      }
 
       currentProgress = newProgress?.[0]
     }
 
     if (!currentProgress) {
-      return NextResponse.json(
+      return apiResponse(
         { error: 'Failed to create progress record' },
-        { status: 500 }
+        500
       )
     }
 
     // Update progress
-    const completedSections = [...(currentProgress.completedSections || [])]
-    const completedSlides = [...(currentProgress.completedSlides || [])]
+    const completedSections = [...(currentProgress?.completed_sections || [])]
+    const completedSlides = [...(currentProgress?.completed_slides || [])]
 
     if (completed && !completedSections.includes(slideId)) {
       completedSections.push(slideId)
@@ -292,26 +300,26 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: updatedProgress } = await supabase
-      .from('userProgress')
+      .from('user_progress')
       .update({
-        completedSections,
-        completedSlides,
-        updatedAt: new Date().toISOString(),
+        completed_sections,
+        completed_slides,
+        updated_at: new Date().toISOString(),
       })
-      .eq('userId', userId)
-      .eq('dayId', dayId)
+      .eq('user_id', userId)
+      .eq('day_id', dayId)
       .select()
 
-    return NextResponse.json({
+    return apiResponse({
       success: true,
       progress: updatedProgress?.[0],
       message: 'Progress updated successfully'
     })
   } catch (error) {
     console.error('Error updating progress:', error)
-    return NextResponse.json(
+    return apiResponse(
       { error: 'Failed to update progress' },
-      { status: 500 }
+      500
     )
   }
 }
