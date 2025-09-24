@@ -176,11 +176,12 @@ class ProgressStorage {
     }
 
     // Calculate completion percentage
-    const totalSections = 6 // Approximate sections per day
+    // Each day has 5 sections (content + activities)
+    const totalSections = 5
     const completedSections = updatedDayProgress.completedSections.length
-    const completedQuizzes = Object.keys(updatedDayProgress.quizScores).length
+    // Note: completedSections includes all completed items including the quiz
     updatedDayProgress.completionPercentage = Math.round(
-      ((completedSections + completedQuizzes) / (totalSections + 2)) * 100
+      (completedSections / totalSections) * 100
     )
 
     userProgress.days[dayId] = updatedDayProgress

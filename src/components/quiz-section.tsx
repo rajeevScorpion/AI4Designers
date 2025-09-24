@@ -29,17 +29,21 @@ export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQ
   const [showResults, setShowResults] = useState(isCompleted)
   const [submittedAnswers, setSubmittedAnswers] = useState<Record<string, number>>({})
 
-  // Load saved answers if available and dayId is provided
+  // Load saved quiz state if available and dayId is provided
   useEffect(() => {
     if (dayId && !isLoading) {
       const dayProgress = getDayProgress(dayId)
       if (dayProgress) {
-        // We could potentially restore quiz answers here in the future
-        // For now, we just use the completion state
+        // Show results if quiz is completed
         setShowResults(isCompleted)
+
+        // If quiz has a score, it means it was completed before
+        if (score !== undefined) {
+          setSubmittedAnswers({}) // We don't store individual answers, just show results
+        }
       }
     }
-  }, [dayId, isCompleted, getDayProgress, isLoading])
+  }, [dayId, isCompleted, score, getDayProgress, isLoading])
 
   const handleAnswerChange = (questionId: string, answer: string) => {
     setAnswers(prev => ({
@@ -71,6 +75,8 @@ export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQ
     // Save to context if dayId is provided
     if (dayId) {
       updateQuizScore(dayId, quiz.id, finalScore)
+      // Mark the quiz section as completed
+      updateSectionCompletion(dayId, sectionId, true)
     }
     onQuizComplete?.(quiz.id, finalScore)
   }
@@ -181,7 +187,7 @@ export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQ
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-start items-center pt-4 border-t">
+        <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -203,6 +209,19 @@ export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQ
               </TooltipContent>
             </Tooltip>
           </div>
+
+          {!isCompleted && (
+            <Button
+              onClick={() => {
+                if (dayId) {
+                  updateSectionCompletion(dayId, sectionId, true)
+                }
+              }}
+              data-testid="button-mark-completed"
+            >
+              Mark as Completed
+            </Button>
+          )}
         </div>
       </Card>
       </TooltipProvider>

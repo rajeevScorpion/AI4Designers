@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { User, Mail, Phone, Calendar, Building, Award, Save, Lock } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { createClient } from "@/lib/supabase/client"
+import ProgressTracker from "@/components/ProgressTracker"
 
 interface ProfileData {
   fullName: string
@@ -48,6 +49,8 @@ export default function Profile() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [profileLocked, setProfileLocked] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [userProgress, setUserProgress] = useState<any>(null)
+  const [progressLoading, setProgressLoading] = useState(true)
   const [profileData, setProfileData] = useState<ProfileData>({
     fullName: "",
     email: "",
@@ -112,8 +115,26 @@ export default function Profile() {
               }))
             }
           }
+
+          // Fetch progress data
+          try {
+            const progressResponse = await fetch('/api/progress', {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            })
+            if (progressResponse.ok) {
+              const progressData = await progressResponse.json()
+              setUserProgress(progressData)
+            }
+          } catch (error) {
+            console.error('Failed to fetch user progress:', error)
+          } finally {
+            setProgressLoading(false)
+          }
         } catch (error) {
           console.error('Error loading profile data:', error)
+          setProgressLoading(false)
         }
       }
     }
@@ -218,6 +239,10 @@ export default function Profile() {
     setProfileData(prev => ({ ...prev, [field]: value }))
   }
 
+  // Calculate progress values
+  const completedDays = userProgress?.overallProgress?.totalDaysCompleted || 0
+  const overallProgress = userProgress ? Math.round((completedDays / 5) * 100) : 0
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -246,7 +271,62 @@ export default function Profile() {
           </Alert>
         )}
 
-        {/* Profile Form */}
+        {/* Progress Tracker */}
+        {!progressLoading && user && (
+          <ProgressTracker
+            completedDays={completedDays}
+            overallProgress={overallProgress}
+          />
+        )}
+
+        {/* Confirmation Modal */}
+        <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Profile Save</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. Once you save your profile, all fields except your name will be permanently locked and cannot be modified. Your profile information will be used for certificate generation.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
+                Review
+              </Button>
+              <Button onClick={handleConfirmSave}>
+                Confirm
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Earned Badges Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="w-5 h-5" />
+              Earned Badges
+            </CardTitle>
+            <CardDescription>
+              Your achievements will appear here as you progress through the course
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <Award className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground mb-4">
+                Complete course activities to earn badges!
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => window.location.href = '/certificate'}
+              >
+                View Certificate
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Personal Information */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -468,53 +548,6 @@ export default function Profile() {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-
-        {/* Confirmation Modal */}
-        <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm Profile Save</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. Once you save your profile, all fields except your name will be permanently locked and cannot be modified. Your profile information will be used for certificate generation.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
-                Review
-              </Button>
-              <Button onClick={handleConfirmSave}>
-                Confirm
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Earned Badges Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5" />
-              Earned Badges
-            </CardTitle>
-            <CardDescription>
-              Your achievements will appear here as you progress through the course
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <Award className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">
-                Complete course activities to earn badges!
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => window.location.href = '/certificate'}
-              >
-                View Certificate
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>
