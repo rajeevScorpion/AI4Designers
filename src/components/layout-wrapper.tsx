@@ -103,8 +103,10 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
           isCompleted: completedSections.includes(section.id)
         }))
 
-        // Calculate day progress
-        const progressPercentage = dayProgress?.completionPercentage || 0
+        // Calculate day progress based on completed sections
+        const totalSections = day.sections.length
+        const completedCount = completedSections.length
+        const progressPercentage = totalSections > 0 ? Math.round((completedCount / totalSections) * 100) : 0
         const isDayCompleted = progressPercentage >= 80
 
         return {

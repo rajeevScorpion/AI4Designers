@@ -23,7 +23,7 @@ interface QuizSectionProps {
 }
 
 export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQuizComplete, onQuizRetake, isFinalSection = false, allSectionsCompleted = false, onNextDay }: QuizSectionProps) {
-  const { updateQuizScore, getDayProgress, isLoading } = useCourse()
+  const { updateQuizScore, updateSectionCompletion, getDayProgress, isLoading } = useCourse()
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [showResults, setShowResults] = useState(isCompleted)
@@ -75,8 +75,8 @@ export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQ
     // Save to context if dayId is provided
     if (dayId) {
       updateQuizScore(dayId, quiz.id, finalScore)
-      // Mark the quiz section as completed
-      updateSectionCompletion(dayId, sectionId, true)
+      // Mark the quiz section as completed using the quiz.id as sectionId
+      updateSectionCompletion(dayId, quiz.id, true)
     }
     onQuizComplete?.(quiz.id, finalScore)
   }
@@ -214,7 +214,7 @@ export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQ
             <Button
               onClick={() => {
                 if (dayId) {
-                  updateSectionCompletion(dayId, sectionId, true)
+                  updateSectionCompletion(dayId, quiz.id, true)
                 }
               }}
               data-testid="button-mark-completed"

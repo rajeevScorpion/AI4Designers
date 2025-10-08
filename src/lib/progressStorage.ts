@@ -219,9 +219,13 @@ class ProgressStorage {
     }
 
     const result = this.saveDayProgress(dayId, { completedSections })
-    // Trigger sync after progress update
+    // Trigger sync after progress update, especially for quiz completion
     if (result.success && this.authState.isAuthenticated) {
       this.queueSync('update_section_completion', { dayId, sectionId, completed })
+      // Immediate sync for section completion
+      setTimeout(() => {
+        this.syncProgress()
+      }, 500)
     }
     return result
   }
@@ -236,9 +240,13 @@ class ProgressStorage {
     const quizScores = { ...dayProgress.quizScores, [quizId]: score }
 
     const result = this.saveDayProgress(dayId, { quizScores })
-    // Trigger sync after progress update
+    // Trigger sync immediately after quiz completion
     if (result.success && this.authState.isAuthenticated) {
       this.queueSync('update_quiz_score', { dayId, quizId, score })
+      // Immediate sync for quiz completion
+      setTimeout(() => {
+        this.syncProgress()
+      }, 500)
     }
     return result
   }

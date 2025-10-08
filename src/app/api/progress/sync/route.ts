@@ -147,9 +147,9 @@ export async function POST(request: NextRequest) {
     // Get current remote progress for all days
     const supabase = createServiceClient()
     const { data: remoteProgressList } = await supabase
-      .from('userProgress')
+      .from('user_progress')
       .select('*')
-      .eq('userId', userId)
+      .eq('user_id', userId)
 
     // Convert remote progress to a map for easier lookup
     const remoteProgressMap = new Map()
@@ -168,18 +168,18 @@ export async function POST(request: NextRequest) {
       if (!remoteProgress) {
         // No remote progress exists, create new record
         const newProgress = {
-          userId,
-          dayId,
-          completedSections: (dayLocalProgress as any).completedSections || [],
-          completedSlides: (dayLocalProgress as any).completedSlides || [],
-          quizScores: (dayLocalProgress as any).quizScores || {},
-          currentSlide: (dayLocalProgress as any).currentSlide || 0,
-          isCompleted: (dayLocalProgress as any).completionPercentage === 100 || false,
-          completedAt: (dayLocalProgress as any).completionPercentage === 100 ? new Date() : null,
+          user_id: userId,
+          day_id: dayId,
+          completed_sections: (dayLocalProgress as any).completedSections || [],
+          completed_slides: (dayLocalProgress as any).completedSlides || [],
+          quiz_scores: (dayLocalProgress as any).quizScores || {},
+          current_slide: (dayLocalProgress as any).currentSlide || 0,
+          is_completed: (dayLocalProgress as any).completionPercentage === 100 || false,
+          completed_at: (dayLocalProgress as any).completionPercentage === 100 ? new Date() : null,
         }
 
         const { data: inserted } = await supabase
-          .from('userProgress')
+          .from('user_progress')
           .insert([newProgress])
           .select()
 
@@ -205,18 +205,18 @@ export async function POST(request: NextRequest) {
 
         // Update the remote progress with resolved data
         const { data: updated } = await supabase
-          .from('userProgress')
+          .from('user_progress')
           .update({
-            completedSections: resolvedProgress.completedSections,
-            completedSlides: resolvedProgress.completedSlides,
-            quizScores: resolvedProgress.quizScores,
-            currentSlide: resolvedProgress.currentSlide,
-            isCompleted: resolvedProgress.isCompleted,
-            completedAt: resolvedProgress.completedAt,
-            updatedAt: new Date().toISOString(),
+            completed_sections: resolvedProgress.completedSections,
+            completed_slides: resolvedProgress.completedSlides,
+            quiz_scores: resolvedProgress.quizScores,
+            current_slide: resolvedProgress.currentSlide,
+            is_completed: resolvedProgress.isCompleted,
+            completed_at: resolvedProgress.completedAt,
+            updated_at: new Date().toISOString(),
           })
-          .eq('userId', userId)
-          .eq('dayId', dayId)
+          .eq('user_id', userId)
+          .eq('day_id', dayId)
           .select()
 
         syncResults.push({
@@ -246,9 +246,9 @@ export async function POST(request: NextRequest) {
 
     // Return the complete synced progress from database
     const { data: finalProgressList } = await supabase
-      .from('userProgress')
+      .from('user_progress')
       .select('*')
-      .eq('userId', userId)
+      .eq('user_id', userId)
 
     // Transform to localStorage format for client
     const transformedProgress = {
@@ -265,31 +265,31 @@ export async function POST(request: NextRequest) {
     let latestTimestamp = 0
 
     for (const progress of finalProgressList || []) {
-      const dayId = progress.dayId
+      const dayId = progress.day_id
       const dayProgress = {
-        completedSections: progress.completedSections || [],
-        completedSlides: progress.completedSlides || [],
-        quizScores: progress.quizScores || {},
-        currentSlide: progress.currentSlide || 0,
-        lastAccessed: progress.updatedAt || new Date().toISOString(),
-        completionPercentage: progress.isCompleted ? 100 : 0,
+        completedSections: progress.completed_sections || [],
+        completedSlides: progress.completed_slides || [],
+        quizScores: progress.quiz_scores || {},
+        currentSlide: progress.current_slide || 0,
+        lastAccessed: progress.updated_at || new Date().toISOString(),
+        completionPercentage: progress.is_completed ? 100 : 0,
       }
 
       transformedProgress.days[dayId] = dayProgress
 
       // Track latest accessed day
-      const timestamp = new Date(progress.updatedAt || progress.createdAt || Date.now()).getTime()
+      const timestamp = new Date(progress.updated_at || progress.created_at || Date.now()).getTime()
       if (timestamp > latestTimestamp) {
         latestTimestamp = timestamp
         latestDayId = dayId
       }
 
-      if (progress.isCompleted) {
+      if (progress.is_completed) {
         transformedProgress.overallProgress.totalDaysCompleted++
       }
 
       // Count completed quizzes
-      const quizCount = Object.keys(progress.quizScores || {}).length
+      const quizCount = Object.keys(progress.quiz_scores || {}).length
       transformedProgress.overallProgress.totalQuizzesCompleted += quizCount
     }
 

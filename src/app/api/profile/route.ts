@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/client'
+import { createServiceClient } from '@/lib/supabase/service'
+import { authenticateRequest, apiResponse, handleOptions } from '@/lib/auth'
 
 // Helper function to get user from JWT token
 async function getUserFromToken(request: NextRequest) {
@@ -24,7 +25,20 @@ async function getUserFromToken(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  // Handle CORS preflight
+  const corsResponse = handleOptions(request)
+  if (corsResponse) return corsResponse
+
   try {
+    const authResult = await authenticateRequest(request, {
+      allowServiceRole: false // Require proper authentication for production
+    })
+
+    if (!authResult.success || !authResult.user) {
+      return apiResponse({ error: authResult.error || 'Unauthorized' }, 401)
+    }
+
+    const userId = authResult.user.id
     const body = await request.json()
     const {
       fullName,
@@ -39,37 +53,22 @@ export async function PUT(request: NextRequest) {
       dateOfBirth
     } = body
 
-    // Get user from JWT token
-    const user = await getUserFromToken(request)
-    if (!user?.email) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
     // Get current user data to check if profile is locked
-    const supabase = createClient()
+    const supabase = createServiceClient()
     const { data: currentUser, error: fetchError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', user.email)
+      .eq('id', userId)
       .single()
 
   
     if (currentUser?.profilelocked) {
-      return NextResponse.json(
-        { error: 'Profile is locked and cannot be modified' },
-        { status: 400 }
-      )
+      return apiResponse({ error: 'Profile is locked and cannot be modified' }, 400)
     }
 
     // Validate email matches the authenticated user's email
-    if (email !== user.email) {
-      return NextResponse.json(
-        { error: 'Email cannot be changed' },
-        { status: 400 }
-      )
+    if (email !== authResult.user.email) {
+      return apiResponse({ error: 'Email cannot be changed' }, 400)
     }
 
     // Validate required fields
@@ -101,10 +100,7 @@ export async function PUT(request: NextRequest) {
     // Check if all required fields are provided
     for (const [field, value] of Object.entries(requiredFields)) {
       if (!value || value.trim() === '') {
-        return NextResponse.json(
-          { error: `${field} is required` },
-          { status: 400 }
-        )
+        return apiResponse({ error: `${field} is required` }, 400)
       }
     }
 
@@ -131,7 +127,7 @@ export async function PUT(request: NextRequest) {
       result = await supabase
         .from('users')
         .update(updateData)
-        .eq('email', user.email)
+        .eq('id', userId)
         .select()
         .single()
     } else {
@@ -140,15 +136,15 @@ export async function PUT(request: NextRequest) {
         .from('users')
         .insert({
           ...updateData,
-          id: user.id,
+          id: userId,
           createdat: new Date().toISOString()
         })
         .select()
         .single()
     }
 
-    
-    return NextResponse.json({
+
+    return apiResponse({
       success: true,
       message: 'Profile updated successfully',
       user: result.data
@@ -156,42 +152,46 @@ export async function PUT(request: NextRequest) {
 
   } catch (error) {
     console.error('Profile update error:', error)
-    return NextResponse.json(
+    return apiResponse(
       { error: 'Internal server error' },
-      { status: 500 }
+      500
     )
   }
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    // Get user from JWT token
-    const user = await getUserFromToken(request)
+  // Handle CORS preflight
+  const corsResponse = handleOptions(request)
+  if (corsResponse) return corsResponse
 
-    if (!user?.email) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+  try {
+    const authResult = await authenticateRequest(request, {
+      allowServiceRole: false // Require proper authentication for production
+    })
+
+    if (!authResult.success || !authResult.user) {
+      return apiResponse({ error: authResult.error || 'Unauthorized' }, 401)
     }
 
+    const userId = authResult.user.id
+
     // Get user profile data
-    const supabase = createClient()
+    const supabase = createServiceClient()
     const { data: userProfile, error: fetchError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', user.email)
+      .eq('id', userId)
       .single()
 
 
     if (fetchError && fetchError.code === 'PGRST116') {
       // Return basic user info if no profile exists yet
-      return NextResponse.json({
+      return apiResponse({
         success: true,
         user: {
-          id: user.id,
-          email: user.email,
-          fullname: user.user_metadata?.full_name || '',
+          id: userId,
+          email: authResult.user.email,
+          fullname: authResult.user.user_metadata?.full_name || '',
           profilelocked: false,
           isprofilecomplete: false,
           createdat: new Date(),
@@ -200,16 +200,16 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    return NextResponse.json({
+    return apiResponse({
       success: true,
       user: userProfile
     })
 
   } catch (error) {
     console.error('Profile fetch error:', error)
-    return NextResponse.json(
+    return apiResponse(
       { error: 'Internal server error' },
-      { status: 500 }
+      500
     )
   }
 }
