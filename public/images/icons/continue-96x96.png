@@ -1,0 +1,8 @@
+
+<svg width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+  <rect width="96" height="96" fill="#F59E0B" rx="10"/>
+  <text x="48" y="40" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">
+    Play
+  </text>
+  <polygon points="38,50 38,60 58,55" fill="white"/>
+</svg>
