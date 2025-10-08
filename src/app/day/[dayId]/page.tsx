@@ -52,9 +52,19 @@ export default function Day({ params }: DayProps) {
   const { celebrateCompletion, smallCelebration } = useConfetti()
 
   // Get progress data from context
-  const dayProgress = getDayProgress(dayId)
-  const completedSections = dayProgress?.completedSections || []
-  const quizScores = dayProgress?.quizScores || {}
+  const [dayProgress, setDayProgress] = useState<any>(null)
+  const [completedSections, setCompletedSections] = useState<string[]>([])
+  const [quizScores, setQuizScores] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    const loadProgress = async () => {
+      const progress = await getDayProgress(dayId)
+      setDayProgress(progress)
+      setCompletedSections(progress?.completedSections || [])
+      setQuizScores(progress?.quizScores || {})
+    }
+    loadProgress()
+  }, [dayId, getDayProgress])
 
   // Show login modal only once per session for unauthenticated users
   useEffect(() => {
@@ -156,28 +166,66 @@ export default function Day({ params }: DayProps) {
 
   const handleSectionComplete = async (sectionId: string) => {
     try {
-      updateSectionCompletion(dayId, sectionId, true)
+      // Check if section is already completed
+      const isCurrentlyCompleted = completedSections.includes(sectionId)
+
+      // Optimistically update the local state
+      if (!isCurrentlyCompleted) {
+        setCompletedSections(prev => [...prev, sectionId])
+      } else {
+        setCompletedSections(prev => prev.filter(id => id !== sectionId))
+      }
+
+      // Update the backend
+      await updateSectionCompletion(dayId, sectionId, !isCurrentlyCompleted)
       smallCelebration()
     } catch (error) {
       console.error('Error updating progress:', error)
+      // Revert the optimistic update if there was an error
+      setCompletedSections(prev => prev.filter(id => id !== sectionId))
     }
   }
 
   const handleQuizComplete = async (quizId: string, score: number) => {
     try {
-      updateQuizScore(dayId, quizId, score)
+      // Optimistically update the local state
+      setQuizScores(prev => ({ ...prev, [quizId]: score }))
+
+      // Mark quiz as completed if score is 100%
+      if (score === 100) {
+        setCompletedSections(prev => {
+          if (!prev.includes(quizId)) {
+            return [...prev, quizId]
+          }
+          return prev
+        })
+      }
+
+      // Update the backend
+      await updateQuizScore(dayId, quizId, score)
       smallCelebration()
     } catch (error) {
       console.error('Error submitting quiz:', error)
+      // Revert the optimistic update if there was an error
+      setQuizScores(prev => {
+        const { [quizId]: removed, ...rest } = prev
+        return rest
+      })
     }
   }
 
   const handleQuizRetake = async (quizId: string) => {
     try {
-      updateQuizScore(dayId, quizId, 0)
-      updateSectionCompletion(dayId, quizId, false)
+      // Optimistically update the local state
+      setQuizScores(prev => ({ ...prev, [quizId]: 0 }))
+      setCompletedSections(prev => prev.filter(id => id !== quizId))
+
+      // Update the backend
+      await updateQuizScore(dayId, quizId, 0)
+      await updateSectionCompletion(dayId, quizId, false)
     } catch (error) {
       console.error('Error retaking quiz:', error)
+      // The backend will be the source of truth, so we'll rely on the useEffect to sync state
     }
   }
 

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - AI4Designers</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .container {
+      max-width: 500px;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .offline-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 2rem;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .offline-icon svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    .retry-button {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-right: 1rem;
+    }
+
+    .retry-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .retry-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .cache-status {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .features {
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+      opacity: 0.9;
+    }
+
+    .feature svg {
+      width: 24px;
+      height: 24px;
+      margin-right: 1rem;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="offline-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+      </svg>
+    </div>
+
+    <h1>You're Offline</h1>
+    <p>
+      No internet connection detected. Don't worry - you can still access your progress and continue learning offline!
+    </p>
+
+    <div class="features">
+      <div class="feature">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Your progress is saved locally</span>
+      </div>
+      <div class="feature">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        <span>Access all course materials</span>
+      </div>
+      <div class="feature">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span>Changes will sync when online</span>
+      </div>
+    </div>
+
+    <button class="retry-button" onclick="checkConnection()">
+      <span id="button-text">Try Again</span>
+    </button>
+
+    <div class="cache-status" id="cache-status">
+      Checking cached content...
+    </div>
+  </div>
+
+  <script>
+    let isRetrying = false
+
+    // Check connection and reload if online
+    async function checkConnection() {
+      if (isRetrying) return
+
+      const button = document.querySelector('.retry-button')
+      const buttonText = document.getElementById('button-text')
+
+      isRetrying = true
+      button.disabled = true
+      buttonText.textContent = 'Checking...'
+
+      try {
+        // Try to fetch a small resource
+        const response = await fetch('/', {
+          method: 'HEAD',
+          cache: 'no-cache'
+        })
+
+        if (response.ok) {
+          buttonText.textContent = 'Connected!'
+          setTimeout(() => {
+            window.location.reload()
+          }, 1000)
+        } else {
+          throw new Error('Server not responding')
+        }
+      } catch (error) {
+        buttonText.textContent = 'Still Offline'
+        button.disabled = false
+        isRetrying = false
+
+        // Show connection status
+        updateConnectionStatus(false)
+      }
+    }
+
+    // Update connection status
+    function updateConnectionStatus(isOnline) {
+      const status = document.getElementById('cache-status')
+
+      if (isOnline) {
+        status.innerHTML = '<span class="pulse">✓ Connected to internet</span>'
+      } else {
+        // Check what's available in cache
+        if ('caches' in window) {
+          caches.keys().then(cacheNames => {
+            const totalCaches = cacheNames.length
+            status.innerHTML = `
+              <div>You have ${totalCaches} cache(s) available</div>
+              <div style="margin-top: 0.5rem; font-size: 0.8rem;">
+                Your progress is safe and will sync when you're back online
+              </div>
+            `
+          })
+        } else {
+          status.textContent = 'Offline mode - Your progress is saved locally'
+        }
+      }
+    }
+
+    // Listen for online/offline events
+    window.addEventListener('online', () => {
+      updateConnectionStatus(true)
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
+    })
+
+    window.addEventListener('offline', () => {
+      updateConnectionStatus(false)
+    })
+
+    // Initial status check
+    updateConnectionStatus(navigator.onLine)
+
+    // Auto-retry every 30 seconds
+    setInterval(() => {
+      if (!navigator.onLine && !isRetrying) {
+        checkConnection()
+      }
+    }, 30000)
+
+    // Listen for service worker messages
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data.type === 'ONLINE_STATUS_CHANGED') {
+          updateConnectionStatus(event.data.isOnline)
+        }
+      })
+    }
+
+    // Check for service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(registration => {
+        console.log('Service Worker is ready:', registration)
+      })
+    }
+  </script>
+</body>
+</html>

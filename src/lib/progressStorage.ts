@@ -8,6 +8,10 @@ import {
   DEFAULT_PROGRESS,
   DEFAULT_DAY_PROGRESS
 } from '@/shared/progressTypes'
+import { db, dbUtils, initializeDatabase, transactionWithRetry } from './db'
+import { syncService, SyncService } from './sync'
+import { dataMigration } from './migration'
+import type { Session } from '@supabase/supabase-js'
 
 // Types for sync functionality
 export interface SyncResult {
@@ -39,23 +43,54 @@ class ProgressStorage {
   // Sync and authentication state
   private authState: AuthState = { isAuthenticated: false }
   private syncQueue: Array<{ action: string; data: any }> = []
-  private isSyncing = false
-  private syncInterval?: NodeJS.Timeout
+  private isInitialized: boolean = false
+  private session?: Session | null
+  public isSyncing: boolean = false
 
   constructor() {
-    // Initialize sync interval for authenticated users
-    this.initAutoSync()
+    // Initialize database when constructed
+    this.initialize()
+  }
+
+  // Initialize database and check for migration
+  private async initialize(): Promise<void> {
+    if (this.isInitialized || typeof window === 'undefined') return
+
+    try {
+      await initializeDatabase()
+
+      // Run migration if needed
+      const migrationStatus = dataMigration.getMigrationStatus()
+      if (!migrationStatus.isMigrated && migrationStatus.localStorageData?.hasProgress) {
+        // Running localStorage to IndexedDB migration...
+        const migrationResult = await dataMigration.migrate()
+        if (migrationResult.success) {
+          // Migration completed successfully
+        } else {
+          // Migration failed
+        }
+      }
+
+      this.isInitialized = true
+    } catch (error) {
+      // Failed to initialize progress storage
+    }
+  }
+
+  // Ensure initialization before operations
+  private async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized) {
+      await this.initialize()
+    }
   }
 
   // Authentication state management
   setAuthState(authState: AuthState): void {
     this.authState = authState
+
+    // Initialize sync service when authenticated
     if (authState.isAuthenticated) {
-      this.initAutoSync()
-      // Trigger immediate sync when user authenticates
-      this.syncProgress()
-    } else {
-      this.clearAutoSync()
+      syncService.initialize(this.session || null)
     }
   }
 
@@ -63,95 +98,155 @@ class ProgressStorage {
     return { ...this.authState }
   }
 
-  // Auto-sync functionality
-  private initAutoSync(): void {
-    this.clearAutoSync()
-    if (this.authState.isAuthenticated && typeof window !== 'undefined') {
-      this.syncInterval = setInterval(() => {
-        this.syncProgress()
-      }, 30000) // Sync every 30 seconds
-    }
-  }
-
-  private clearAutoSync(): void {
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval)
-      this.syncInterval = undefined
-    }
-  }
-
-  // Generic storage helpers
-  private storageGet<T>(key: string, defaultValue: T): StorageResult<T> {
-    try {
-      const item = localStorage.getItem(key)
-      if (item === null) {
-        return { success: true, data: defaultValue }
+  // Set session for sync
+  setSession(session: Session | null): void {
+    this.session = session
+    if (session?.user) {
+      this.authState = {
+        isAuthenticated: true,
+        user: session.user,
+        token: session.access_token
       }
-
-      const parsed = JSON.parse(item)
-      return { success: true, data: parsed }
-    } catch (error) {
-      const storageError: StorageError = {
-        message: error instanceof Error ? error.message : 'Failed to get storage item',
-        code: 'UNKNOWN'
-      }
-      return { success: false, error: storageError }
-    }
-  }
-
-  private storageSet<T>(key: string, data: T): StorageResult<void> {
-    try {
-      const serialized = JSON.stringify(data)
-      localStorage.setItem(key, serialized)
-      return { success: true, data: undefined }
-    } catch (error) {
-      let code: StorageError['code'] = 'UNKNOWN'
-
-      if (error instanceof Error) {
-        if (error.name === 'QuotaExceededError') {
-          code = 'QUOTA_EXCEEDED'
-        } else if (error.name === 'SecurityError') {
-          code = 'ACCESS_DENIED'
-        }
-      }
-
-      const storageError: StorageError = {
-        message: error instanceof Error ? error.message : 'Failed to set storage item',
-        code
-      }
-      return { success: false, error: storageError }
-    }
-  }
-
-  private storageRemove(key: string): StorageResult<void> {
-    try {
-      localStorage.removeItem(key)
-      return { success: true, data: undefined }
-    } catch (error) {
-      const storageError: StorageError = {
-        message: error instanceof Error ? error.message : 'Failed to remove storage item',
-        code: 'UNKNOWN'
-      }
-      return { success: false, error: storageError }
+      syncService.initialize(session)
+    } else {
+      this.authState = { isAuthenticated: false }
+      syncService.initialize(null)
     }
   }
 
   // Progress specific methods
-  getUserProgress(): StorageResult<UserProgress> {
-    return this.storageGet(STORAGE_KEYS.USER_PROGRESS, DEFAULT_PROGRESS)
+  async getUserProgress(): Promise<StorageResult<UserProgress>> {
+    await this.ensureInitialized()
+
+    try {
+      // Get all progress records from IndexedDB
+      const records = await db.userProgress.toArray()
+
+      if (records.length === 0) {
+        return { success: true, data: DEFAULT_PROGRESS }
+      }
+
+      // Combine all records into single UserProgress object
+      const combinedProgress: UserProgress = {
+        currentDay: null,
+        days: {},
+        overallProgress: {
+          totalDaysCompleted: 0,
+          totalQuizzesCompleted: 0,
+          lastAccessed: new Date().toISOString()
+        }
+      }
+
+      let latestDayId = 0
+      let latestTimestamp = 0
+
+      for (const record of records) {
+        const progress = dbUtils.fromProgressEntity(record)
+
+        if (record.dayId === 0) {
+          // Overall progress record
+          combinedProgress.currentDay = progress.currentDay
+          combinedProgress.overallProgress = progress.overallProgress
+        } else {
+          // Day-specific progress
+          const dayProgress = progress.days[record.dayId] || {
+            completedSections: [],
+            quizScores: {},
+            currentSlide: 0,
+            lastAccessed: new Date().toISOString(),
+            completionPercentage: 0
+          }
+
+          combinedProgress.days[record.dayId] = dayProgress
+
+          // Track latest accessed day
+          const timestamp = new Date(dayProgress.lastAccessed).getTime()
+          if (timestamp > latestTimestamp) {
+            latestTimestamp = timestamp
+            latestDayId = record.dayId
+          }
+
+          // Update overall stats
+          if (dayProgress.completionPercentage >= 80) {
+            combinedProgress.overallProgress.totalDaysCompleted++
+          }
+          combinedProgress.overallProgress.totalQuizzesCompleted +=
+            Object.keys(dayProgress.quizScores || {}).length
+        }
+      }
+
+      // Set current day if not already set
+      if (!combinedProgress.currentDay && latestDayId > 0) {
+        combinedProgress.currentDay = latestDayId
+      }
+
+      return { success: true, data: combinedProgress }
+    } catch (error) {
+      const storageError: StorageError = {
+        message: error instanceof Error ? error.message : 'Failed to get user progress',
+        code: 'UNKNOWN'
+      }
+      return { success: false, error: storageError }
+    }
   }
 
-  saveUserProgress(progress: UserProgress): StorageResult<void> {
-    return this.storageSet(STORAGE_KEYS.USER_PROGRESS, progress)
+  async saveUserProgress(progress: UserProgress): Promise<StorageResult<void>> {
+    await this.ensureInitialized()
+
+    try {
+      await transactionWithRetry(async () => {
+        // Clear existing progress records
+        await db.userProgress.clear()
+
+        // Save overall progress (dayId 0)
+        const overallEntity = dbUtils.toProgressEntity({
+          currentDay: progress.currentDay,
+          days: {},
+          overallProgress: progress.overallProgress
+        }, 0)
+        await db.userProgress.put(overallEntity)
+
+        // Save each day's progress
+        for (const [dayId, dayProgress] of Object.entries(progress.days)) {
+          const dayNum = parseInt(dayId)
+          const dayFullProgress: UserProgress = {
+            currentDay: dayNum,
+            days: { [dayNum]: dayProgress },
+            overallProgress: {
+              totalDaysCompleted: 0,
+              totalQuizzesCompleted: 0,
+              lastAccessed: new Date().toISOString()
+            }
+          }
+
+          const entity = dbUtils.toProgressEntity(dayFullProgress, dayNum)
+          entity.dirty = true // Mark for sync
+          await db.userProgress.put(entity)
+        }
+      })
+
+      // Trigger sync if authenticated
+      if (this.authState.isAuthenticated) {
+        this.queueSync('save_user_progress', { progress })
+      }
+
+      return { success: true, data: undefined }
+    } catch (error) {
+      const storageError: StorageError = {
+        message: error instanceof Error ? error.message : 'Failed to save user progress',
+        code: 'UNKNOWN'
+      }
+      return { success: false, error: storageError }
+    }
   }
 
-  getDayProgress(dayId: number): StorageResult<DayProgress | null> {
-    const result = this.getUserProgress()
-    if (!result.success) {
-      return result
+  async getDayProgress(dayId: number): Promise<StorageResult<DayProgress | null>> {
+    const userProgressResult = await this.getUserProgress()
+    if (!userProgressResult.success) {
+      return userProgressResult as StorageResult<null>
     }
 
-    const dayProgress = result.data.days[dayId]
+    const dayProgress = userProgressResult.data.days[dayId]
     if (!dayProgress) {
       return { success: true, data: null }
     }
@@ -159,10 +254,10 @@ class ProgressStorage {
     return { success: true, data: dayProgress }
   }
 
-  saveDayProgress(dayId: number, progress: Partial<DayProgress>): StorageResult<void> {
-    const userProgressResult = this.getUserProgress()
+  async saveDayProgress(dayId: number, progress: Partial<DayProgress>): Promise<StorageResult<void>> {
+    const userProgressResult = await this.getUserProgress()
     if (!userProgressResult.success) {
-      return userProgressResult
+      return userProgressResult as StorageResult<void>
     }
 
     const userProgress = userProgressResult.data
@@ -176,10 +271,8 @@ class ProgressStorage {
     }
 
     // Calculate completion percentage
-    // Each day has 5 sections (content + activities)
     const totalSections = 5
     const completedSections = updatedDayProgress.completedSections.length
-    // Note: completedSections includes all completed items including the quiz
     updatedDayProgress.completionPercentage = Math.round(
       (completedSections / totalSections) * 100
     )
@@ -200,13 +293,20 @@ class ProgressStorage {
     userProgress.overallProgress.totalDaysCompleted = daysCompleted
     userProgress.overallProgress.totalQuizzesCompleted = quizzesCompleted
 
-    return this.saveUserProgress(userProgress)
+    const result = await this.saveUserProgress(userProgress)
+
+    // Trigger sync after progress update
+    if (result.success && this.authState.isAuthenticated) {
+      this.queueSync('update_day_progress', { dayId, progress })
+    }
+
+    return result
   }
 
-  updateSectionCompletion(dayId: number, sectionId: string, completed: boolean): StorageResult<void> {
-    const dayResult = this.getDayProgress(dayId)
+  async updateSectionCompletion(dayId: number, sectionId: string, completed: boolean): Promise<StorageResult<void>> {
+    const dayResult = await this.getDayProgress(dayId)
     if (!dayResult.success) {
-      return dayResult
+      return dayResult as StorageResult<void>
     }
 
     const dayProgress = dayResult.data || DEFAULT_DAY_PROGRESS
@@ -218,57 +318,73 @@ class ProgressStorage {
       completedSections = completedSections.filter(id => id !== sectionId)
     }
 
-    const result = this.saveDayProgress(dayId, { completedSections })
+    const result = await this.saveDayProgress(dayId, { completedSections })
+
     // Trigger sync after progress update, especially for quiz completion
     if (result.success && this.authState.isAuthenticated) {
       this.queueSync('update_section_completion', { dayId, sectionId, completed })
-      // Immediate sync for section completion
-      setTimeout(() => {
-        this.syncProgress()
-      }, 500)
     }
+
     return result
   }
 
-  updateQuizScore(dayId: number, quizId: string, score: number): StorageResult<void> {
-    const dayResult = this.getDayProgress(dayId)
+  async updateQuizScore(dayId: number, quizId: string, score: number): Promise<StorageResult<void>> {
+    const dayResult = await this.getDayProgress(dayId)
     if (!dayResult.success) {
-      return dayResult
+      return dayResult as StorageResult<void>
     }
 
     const dayProgress = dayResult.data || DEFAULT_DAY_PROGRESS
     const quizScores = { ...dayProgress.quizScores, [quizId]: score }
 
-    const result = this.saveDayProgress(dayId, { quizScores })
+    const result = await this.saveDayProgress(dayId, { quizScores })
+
     // Trigger sync immediately after quiz completion
     if (result.success && this.authState.isAuthenticated) {
       this.queueSync('update_quiz_score', { dayId, quizId, score })
-      // Immediate sync for quiz completion
-      setTimeout(() => {
-        this.syncProgress()
-      }, 500)
     }
+
     return result
   }
 
-  updateCurrentSlide(dayId: number, slideIndex: number): StorageResult<void> {
-    const result = this.saveDayProgress(dayId, { currentSlide: slideIndex })
+  async updateCurrentSlide(dayId: number, slideIndex: number): Promise<StorageResult<void>> {
+    const result = await this.saveDayProgress(dayId, { currentSlide: slideIndex })
+
     // Trigger sync after progress update
     if (result.success && this.authState.isAuthenticated) {
       this.queueSync('update_current_slide', { dayId, slideIndex })
     }
+
     return result
   }
 
-  clearAllProgress(): StorageResult<void> {
-    return this.storageRemove(STORAGE_KEYS.USER_PROGRESS)
+  async clearAllProgress(): Promise<StorageResult<void>> {
+    try {
+      await db.userProgress.clear()
+
+      // Clear localStorage keys as well
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEYS.USER_PROGRESS)
+      }
+
+      return { success: true, data: undefined }
+    } catch (error) {
+      const storageError: StorageError = {
+        message: error instanceof Error ? error.message : 'Failed to clear progress',
+        code: 'UNKNOWN'
+      }
+      return { success: false, error: storageError }
+    }
   }
 
-  // Session storage methods
-  getSessionState(): StorageResult<SessionState> {
+  // Session state methods
+  async getSessionState(): Promise<StorageResult<SessionState>> {
+    await this.ensureInitialized()
+
     try {
-      const item = sessionStorage.getItem(STORAGE_KEYS.SESSION_STATE)
-      if (item === null) {
+      const record = await db.sessionState.where('key').equals('main').first()
+
+      if (!record) {
         return {
           success: true,
           data: {
@@ -278,8 +394,8 @@ class ProgressStorage {
           }
         }
       }
-      const parsed = JSON.parse(item)
-      return { success: true, data: parsed }
+
+      return { success: true, data: dbUtils.fromSessionEntity(record) }
     } catch (error) {
       const storageError: StorageError = {
         message: error instanceof Error ? error.message : 'Failed to get session state',
@@ -289,10 +405,18 @@ class ProgressStorage {
     }
   }
 
-  saveSessionState(state: SessionState): StorageResult<void> {
+  async saveSessionState(state: SessionState): Promise<StorageResult<void>> {
+    await this.ensureInitialized()
+
     try {
-      const serialized = JSON.stringify(state)
-      sessionStorage.setItem(STORAGE_KEYS.SESSION_STATE, serialized)
+      const entity = dbUtils.toSessionEntity(state, 'main')
+      await db.sessionState.put(entity)
+
+      // Also save to sessionStorage for quick access
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(STORAGE_KEYS.SESSION_STATE, JSON.stringify(state))
+      }
+
       return { success: true, data: undefined }
     } catch (error) {
       const storageError: StorageError = {
@@ -305,6 +429,10 @@ class ProgressStorage {
 
   // Legacy compatibility
   getLastSeenDay(): StorageResult<string | null> {
+    if (typeof window === 'undefined') {
+      return { success: true, data: null }
+    }
+
     try {
       const lastSeen = sessionStorage.getItem(STORAGE_KEYS.LAST_SEEN_DAY)
       return { success: true, data: lastSeen }
@@ -318,6 +446,10 @@ class ProgressStorage {
   }
 
   setLastSeenDay(dayId: string): StorageResult<void> {
+    if (typeof window === 'undefined') {
+      return { success: true, data: undefined }
+    }
+
     try {
       sessionStorage.setItem(STORAGE_KEYS.LAST_SEEN_DAY, dayId)
       return { success: true, data: undefined }
@@ -331,18 +463,9 @@ class ProgressStorage {
   }
 
   // Import/Export functionality
-  exportProgress(): StorageResult<string> {
-    const result = this.getUserProgress()
-    if (!result.success) {
-      return result
-    }
-
+  async exportProgress(): Promise<StorageResult<string>> {
     try {
-      const exportData = {
-        progress: result.data,
-        exportDate: new Date().toISOString(),
-        version: '1.0'
-      }
+      const exportData = await db.exportData()
       return { success: true, data: JSON.stringify(exportData, null, 2) }
     } catch (error) {
       const storageError: StorageError = {
@@ -353,21 +476,26 @@ class ProgressStorage {
     }
   }
 
-  importProgress(jsonData: string): StorageResult<void> {
+  async importProgress(jsonData: string): Promise<StorageResult<void>> {
     try {
       const importData = JSON.parse(jsonData)
 
-      if (!importData.progress || !importData.version) {
+      if (!importData.userProgress && !importData.progress) {
         throw new Error('Invalid import data format')
       }
 
-      // Validate the imported data structure
-      const { progress } = importData
-      if (!progress.days || !progress.overallProgress) {
-        throw new Error('Invalid progress data structure')
+      // If it's old format with progress property, convert it
+      if (importData.progress) {
+        return this.saveUserProgress(importData.progress)
       }
 
-      return this.saveUserProgress(progress)
+      // If it's new format with userProgress
+      if (importData.userProgress) {
+        await db.importData(importData)
+        return { success: true, data: undefined }
+      }
+
+      throw new Error('No valid progress data found')
     } catch (error) {
       const storageError: StorageError = {
         message: error instanceof Error ? error.message : 'Failed to import progress',
@@ -383,84 +511,42 @@ class ProgressStorage {
 
     this.syncQueue.push({ action, data })
 
-    // Debounce sync to avoid too many API calls
-    if (!this.isSyncing) {
-      setTimeout(() => {
-        this.processSyncQueue()
-      }, 1000) // Wait 1 second before processing queue
-    }
-  }
-
-  private async processSyncQueue(): Promise<void> {
-    if (this.isSyncing || this.syncQueue.length === 0) return
-
-    this.isSyncing = true
-    try {
-      await this.syncProgress()
-      this.syncQueue = []
-    } catch (error) {
-      console.error('Error processing sync queue:', error)
-    } finally {
-      this.isSyncing = false
-    }
+    // Add to sync service queue
+    syncService.queueAction(action, data)
   }
 
   // Main sync functionality
   async syncProgress(options?: SyncOptions): Promise<SyncResult> {
-    if (!this.authState.isAuthenticated || !this.authState.token) {
+    if (!this.authState.isAuthenticated) {
       return { success: false, message: 'User not authenticated' }
     }
 
-    if (this.isSyncing) {
-      return { success: false, message: 'Sync already in progress' }
-    }
-
-    this.isSyncing = true
     try {
-      const localProgressResult = this.getUserProgress()
-      if (!localProgressResult.success) {
-        return { success: false, message: 'Failed to get local progress' }
+      const result = await syncService.syncProgress(options)
+
+      // Clear sync queue on successful sync
+      if (result.success) {
+        this.syncQueue = []
+
+        // Mark records as clean
+        const dirtyRecords = await db.getDirtyRecords()
+        for (const record of [...dirtyRecords.progress, ...dirtyRecords.sessions]) {
+          record.dirty = false
+          if ('dayId' in record) {
+            await db.userProgress.put(record)
+          } else {
+            await db.sessionState.put(record)
+          }
+        }
       }
 
-      const response = await fetch('/api/progress/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.authState.token}`
-        },
-        body: JSON.stringify({
-          localProgress: localProgressResult.data,
-          forceSync: options?.forceSync || false,
-          resolutionStrategy: options?.resolutionStrategy || 'merge'
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        return { success: false, message: errorData.error || 'Sync failed' }
-      }
-
-      const syncData = await response.json()
-
-      // Update localStorage with synced data from server
-      if (syncData.progress) {
-        this.saveUserProgress(syncData.progress)
-      }
-
-      return {
-        success: true,
-        message: syncData.message || 'Sync completed successfully',
-        progress: syncData.progress,
-        conflicts: syncData.conflicts
-      }
+      return result
     } catch (error) {
       console.error('Sync error:', error)
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Sync failed'
       }
-    } finally {
-      this.isSyncing = false
     }
   }
 
@@ -485,56 +571,14 @@ class ProgressStorage {
 
       const remoteProgress = await response.json()
 
-      // Merge with local progress
-      const localProgressResult = this.getUserProgress()
-      if (localProgressResult.success && localProgressResult.data) {
-        // Merge local and remote progress
-        const merged = this.mergeProgress(localProgressResult.data, remoteProgress)
-        this.saveUserProgress(merged)
-        return { success: true, data: merged }
-      } else {
-        // Use remote progress as is
-        this.saveUserProgress(remoteProgress)
-        return { success: true, data: remoteProgress }
-      }
+      // Save to IndexedDB
+      await this.saveUserProgress(remoteProgress)
+
+      return { success: true, data: remoteProgress }
     } catch (error) {
       console.error('Error loading remote progress:', error)
       return { success: false, error: { message: error instanceof Error ? error.message : 'Network error', code: 'NETWORK_ERROR' } }
     }
-  }
-
-  // Progress merging logic
-  private mergeProgress(local: UserProgress, remote: UserProgress): UserProgress {
-    const merged: UserProgress = {
-      currentDay: Math.max(local.currentDay || 1, remote.currentDay || 1),
-      days: { ...remote.days },
-      overallProgress: {
-        totalDaysCompleted: Math.max(local.overallProgress.totalDaysCompleted, remote.overallProgress.totalDaysCompleted),
-        totalQuizzesCompleted: Math.max(local.overallProgress.totalQuizzesCompleted, remote.overallProgress.totalQuizzesCompleted),
-        lastAccessed: new Date().toISOString()
-      }
-    }
-
-    // Merge day progress
-    for (const [dayId, localDay] of Object.entries(local.days)) {
-      const remoteDay = remote.days[parseInt(dayId)]
-
-      if (remoteDay) {
-        const mergedSections = Array.from(new Set([...localDay.completedSections, ...remoteDay.completedSections]));
-
-        merged.days[parseInt(dayId)] = {
-          completedSections: mergedSections,
-          quizScores: { ...remoteDay.quizScores, ...localDay.quizScores },
-          currentSlide: Math.max(localDay.currentSlide, remoteDay.currentSlide),
-          lastAccessed: new Date().toISOString(),
-          completionPercentage: Math.max(localDay.completionPercentage, remoteDay.completionPercentage)
-        }
-      } else {
-        merged.days[parseInt(dayId)] = localDay
-      }
-    }
-
-    return merged
   }
 
   // Get sync status
@@ -543,20 +587,23 @@ class ProgressStorage {
     isOnline: boolean
     isAuthenticated: boolean
     queueLength: number
+    lastSyncTime?: Date
   } {
+    const syncStats = syncService.getSyncStats()
     return {
-      isSyncing: this.isSyncing,
-      isOnline: typeof window !== 'undefined' && navigator.onLine,
+      isSyncing: syncStats.isOnline && this.authState.isAuthenticated && this.isSyncing,
+      isOnline: syncStats.isOnline,
       isAuthenticated: this.authState.isAuthenticated,
-      queueLength: this.syncQueue.length
+      queueLength: this.syncQueue.length,
+      lastSyncTime: syncStats.lastSyncTime
     }
   }
 
   // Cleanup
   destroy(): void {
-    this.clearAutoSync()
     this.syncQueue = []
     this.isSyncing = false
+    syncService.destroy()
   }
 }
 

@@ -93,32 +93,35 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
 
   // Update course days with progress data
   useEffect(() => {
-    if (!isLoading && userProgress) {
-      const updatedDays = mockCourseDays.map(day => {
-        const dayProgress = getDayProgress(day.id)
-        const completedSections = dayProgress?.completedSections || []
+    const updateDaysWithProgress = async () => {
+      if (!isLoading && userProgress) {
+        const updatedDays = await Promise.all(mockCourseDays.map(async day => {
+          const dayProgress = await getDayProgress(day.id)
+          const completedSections = dayProgress?.completedSections || []
 
-        const updatedSections = day.sections.map(section => ({
-          ...section,
-          isCompleted: completedSections.includes(section.id)
+          const updatedSections = day.sections.map(section => ({
+            ...section,
+            isCompleted: completedSections.includes(section.id)
+          }))
+
+          // Calculate day progress based on completed sections
+          const totalSections = day.sections.length
+          const completedCount = completedSections.length
+          const progressPercentage = totalSections > 0 ? Math.round((completedCount / totalSections) * 100) : 0
+          const isDayCompleted = progressPercentage >= 80
+
+          return {
+            ...day,
+            sections: updatedSections,
+            isCompleted: isDayCompleted,
+            progress: progressPercentage
+          }
         }))
 
-        // Calculate day progress based on completed sections
-        const totalSections = day.sections.length
-        const completedCount = completedSections.length
-        const progressPercentage = totalSections > 0 ? Math.round((completedCount / totalSections) * 100) : 0
-        const isDayCompleted = progressPercentage >= 80
-
-        return {
-          ...day,
-          sections: updatedSections,
-          isCompleted: isDayCompleted,
-          progress: progressPercentage
-        }
-      })
-
-      setCourseDays(updatedDays)
+        setCourseDays(updatedDays)
+      }
     }
+    updateDaysWithProgress()
   }, [userProgress, isLoading, getDayProgress])
 
   // Check if we're on an auth page to avoid showing sidebar

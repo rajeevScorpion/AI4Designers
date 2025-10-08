@@ -31,19 +31,22 @@ export function QuizSection({ quiz, dayId, isCompleted, isAccessible, score, onQ
 
   // Load saved quiz state if available and dayId is provided
   useEffect(() => {
-    if (dayId && !isLoading) {
-      const dayProgress = getDayProgress(dayId)
-      if (dayProgress) {
-        // Show results if quiz is completed
-        setShowResults(isCompleted)
+    const loadQuizState = async () => {
+      if (dayId && !isLoading) {
+        const dayProgress = await getDayProgress(dayId)
+        if (dayProgress) {
+          // Show results if quiz is completed
+          setShowResults(isCompleted)
 
-        // If quiz has a score, it means it was completed before
-        if (score !== undefined) {
-          setSubmittedAnswers({}) // We don't store individual answers, just show results
+          // If quiz has a score, it means it was completed before
+          if (score !== undefined) {
+            setSubmittedAnswers({}) // We don't store individual answers, just show results
+          }
         }
       }
     }
-  }, [dayId, isCompleted, score, getDayProgress, isLoading])
+    loadQuizState()
+  }, [dayId, isLoading, isCompleted, score, getDayProgress])
 
   const handleAnswerChange = (questionId: string, answer: string) => {
     setAnswers(prev => ({

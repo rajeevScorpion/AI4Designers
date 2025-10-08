@@ -60,6 +60,7 @@ export function TabbedVideoSection({
   }
 
   const handleMarkComplete = () => {
+    console.log(`Marking video section ${sectionId} as ${isCompleted ? 'incomplete' : 'complete'}`)
     onMarkComplete(sectionId)
     // Scroll to top with custom smooth animation
     smoothScrollToTop({
@@ -147,7 +148,10 @@ export function TabbedVideoSection({
                         Completed
                       </>
                     ) : (
-                      'Mark Videos as Complete'
+                      <>
+                        Mark Videos as Complete
+                        <CheckCircle className="w-4 h-4 ml-2" />
+                      </>
                     )}
                   </Button>
                 </div>

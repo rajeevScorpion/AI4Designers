@@ -36,12 +36,15 @@ export function SlideViewer({
 
   // Load saved slide position on mount
   useEffect(() => {
-    if (!isLoading) {
-      const dayProgress = getDayProgress(dayId)
-      if (dayProgress && dayProgress.currentSlide !== undefined) {
-        setCurrentSlide(Math.min(dayProgress.currentSlide, sections.length - 1))
+    const loadSlidePosition = async () => {
+      if (!isLoading) {
+        const dayProgress = await getDayProgress(dayId)
+        if (dayProgress && dayProgress.currentSlide !== undefined) {
+          setCurrentSlide(Math.min(dayProgress.currentSlide, sections.length - 1))
+        }
       }
     }
+    loadSlidePosition()
   }, [dayId, sections.length, getDayProgress, isLoading])
 
   // Save slide position when it changes
@@ -52,9 +55,19 @@ export function SlideViewer({
   }, [currentSlide, dayId, sections.length, updateCurrentSlide, isLoading])
 
   // Use context data if available, otherwise fall back to props
-  const dayProgress = getDayProgress(dayId)
-  const contextCompletedSections = dayProgress?.completedSections || []
-  const contextQuizScores = dayProgress?.quizScores || {}
+  const [dayProgress, setDayProgress] = useState<any>(null)
+  const [contextCompletedSections, setContextCompletedSections] = useState<string[]>([])
+  const [contextQuizScores, setContextQuizScores] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    const loadDayProgress = async () => {
+      const progress = await getDayProgress(dayId)
+      setDayProgress(progress)
+      setContextCompletedSections(progress?.completedSections || [])
+      setContextQuizScores(progress?.quizScores || {})
+    }
+    loadDayProgress()
+  }, [dayId, getDayProgress])
 
   const completedSections = propCompletedSections || contextCompletedSections
   const quizScores = propQuizScores || contextQuizScores

@@ -7,12 +7,43 @@ import { LayoutWrapper } from '@/components/layout-wrapper'
 import { CourseProvider } from '@/contexts/CourseContext'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AuthGuard } from '@/components/auth-guard'
+import { ServiceWorkerManager } from '@/components/ServiceWorkerManager'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'AI Fundamentals for Designers',
   description: 'A 5-day crash course on AI fundamentals for first-year design students',
+  manifest: '/manifest.json',
+  themeColor: '#3b82f6',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'AI4Designers',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'AI4Designers',
+    title: 'AI Fundamentals for Designers',
+    description: 'A 5-day crash course on AI fundamentals for first-year design students',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI Fundamentals for Designers',
+    description: 'A 5-day crash course on AI fundamentals for first-year design students',
+  },
+  icons: {
+    icon: [
+      { url: '/images/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/images/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/images/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
+    ],
+  },
 }
 
 export default function RootLayout({
@@ -31,6 +62,7 @@ export default function RootLayout({
                   {children}
                 </LayoutWrapper>
               </SidebarProvider>
+              <ServiceWorkerManager />
             </CourseProvider>
           </AuthGuard>
         </Providers>

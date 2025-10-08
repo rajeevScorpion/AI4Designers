@@ -38,7 +38,12 @@
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_fill_form",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(start:*)",
+      "Bash(powershell:*)",
+      "Read(//d/**)",
+      "Bash(npm start)",
+      "Bash(cmd:*)"
     ],
     "deny": [],
     "ask": []
