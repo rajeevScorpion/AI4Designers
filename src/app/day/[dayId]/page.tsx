@@ -401,7 +401,6 @@ export default function Day({ params }: DayProps) {
                   <QuizSection
                     quiz={section.quiz}
                     dayId={dayId}
-                    sectionId={section.id}
                     isCompleted={completedSections.includes(section.id)}
                     isAccessible={isSectionAccessible(currentPage)}
                     score={quizScores[section.id]}

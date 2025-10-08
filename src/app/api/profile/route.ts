@@ -1,28 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { authenticateRequest, apiResponse, handleOptions } from '@/lib/auth'
 
-// Helper function to get user from JWT token
-async function getUserFromToken(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null
-  }
-
-  const token = authHeader.substring(7)
-  const supabase = createClient()
-
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser(token)
-    if (error || !user) {
-      return null
-    }
-    return user
-  } catch (error) {
-    console.error('Token validation error:', error)
-    return null
-  }
-}
 
 export async function PUT(request: NextRequest) {
   // Handle CORS preflight
@@ -83,16 +62,16 @@ export async function PUT(request: NextRequest) {
 
     if (profession === 'student') {
       if (!courseType || !stream) {
-        return NextResponse.json(
+        return apiResponse(
           { error: 'Course type and stream are required for students' },
-          { status: 400 }
+          400
         )
       }
     } else {
       if (!fieldOfWork || !designation) {
-        return NextResponse.json(
+        return apiResponse(
           { error: 'Field of work and designation are required for working professionals' },
-          { status: 400 }
+          400
         )
       }
     }
