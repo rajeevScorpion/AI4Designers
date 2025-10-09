@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSync } from '@/lib/sync'
 import { useAuth } from '@/contexts/AuthContext'
-import { Wifi, WifiOff, Sync, CheckCircle, AlertCircle } from 'lucide-react'
+import { Wifi, WifiOff, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
 
 export function SyncStatus() {
   const { user } = useAuth()
@@ -54,7 +54,7 @@ export function SyncStatus() {
         {!isOnline ? (
           <WifiOff className="w-4 h-4" />
         ) : isSyncing ? (
-          <Sync className="w-4 h-4 animate-spin" />
+          <RefreshCw className="w-4 h-4 animate-spin" />
         ) : syncStats.pendingItems > 0 ? (
           <AlertCircle className="w-4 h-4" />
         ) : (

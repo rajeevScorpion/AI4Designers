@@ -64,10 +64,10 @@ export default function RootLayout({
                 </LayoutWrapper>
               </SidebarProvider>
               <ServiceWorkerManager />
+              <SyncStatus />
             </CourseProvider>
           </AuthGuard>
         </Providers>
-        <SyncStatus />
       </body>
     </html>
   )

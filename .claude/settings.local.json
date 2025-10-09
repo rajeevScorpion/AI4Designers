@@ -43,7 +43,8 @@
       "Bash(powershell:*)",
       "Read(//d/**)",
       "Bash(npm start)",
-      "Bash(cmd:*)"
+      "Bash(cmd:*)",
+      "Bash(dir \"d:\\claudeGLM\\AI4Designers\\public\\images\\icons\")"
     ],
     "deny": [],
     "ask": []

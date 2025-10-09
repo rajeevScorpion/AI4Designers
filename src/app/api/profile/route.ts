@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { authenticateRequest, apiResponse, handleOptions } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
 
 export async function PUT(request: NextRequest) {
   // Handle CORS preflight

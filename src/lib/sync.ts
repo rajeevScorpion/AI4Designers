@@ -360,18 +360,8 @@ export class SyncService {
       // Get last sync time
       const lastSyncTime = await this.getLastSyncTime()
 
-      // Fetch updates since last sync using service client with proper auth
-      const serviceSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          },
-        }
-      )
+      // Use regular client - auth headers are automatically included
+      const serviceSupabase = createClient()
 
       const { data: remoteProgress, error } = await serviceSupabase
         .from('user_progress')
