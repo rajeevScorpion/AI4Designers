@@ -154,7 +154,9 @@ export async function POST(request: NextRequest) {
     // Convert remote progress to a map for easier lookup
     const remoteProgressMap = new Map()
     for (const progress of remoteProgressList || []) {
-      remoteProgressMap.set(progress.dayId, progress)
+      // Handle both day_id and dayId field names
+      const dayId = progress.day_id || progress.dayId
+      remoteProgressMap.set(dayId, progress)
     }
 
     const syncResults = []

@@ -73,6 +73,14 @@ export class SyncService {
     if (this.user) {
       // Start auto-sync for authenticated users
       this.startAutoSync()
+
+      // Trigger initial sync to load remote progress
+      try {
+        await this.syncProgress({ forceFullSync: true })
+        console.log('Initial sync completed')
+      } catch (error) {
+        console.error('Initial sync failed:', error)
+      }
     } else {
       // Stop sync if user is not authenticated
       this.stopAutoSync()
@@ -130,76 +138,91 @@ export class SyncService {
     }
   }
 
-  // Main sync function
+  // Main sync function with retry logic
   async syncProgress(options: SyncOptions = {}): Promise<SyncResult> {
-    if (!this.user || !this.isOnline) {
-      return {
-        success: false,
-        message: this.user ? 'Offline - cannot sync' : 'User not authenticated'
-      }
-    }
+    const maxRetries = 3
+    let lastError: Error | null = null
 
-    if (this.isSyncing && !options.forceFullSync) {
-      return {
-        success: false,
-        message: 'Sync already in progress'
-      }
-    }
-
-    this.isSyncing = true
-    this.emit('syncStart', { status: 'syncing' })
-
-    try {
-      const { dirtyRecords } = await this.getDirtyRecords()
-
-      if (dirtyRecords.length === 0 && !options.forceFullSync) {
-        // Pull latest changes from server
-        const pullResult = await this.pullLatestChanges()
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      if (!this.user || !this.isOnline) {
         return {
-          success: true,
-          message: 'No changes to sync',
-          syncedItems: 0,
-          lastSyncTime: new Date()
+          success: false,
+          message: this.user ? 'Offline - cannot sync' : 'User not authenticated'
         }
       }
 
-      // Push local changes to server
-      const pushResult = await this.pushLocalChanges(dirtyRecords, options)
-
-      // Pull latest changes from server
-      const pullResult = await this.pullLatestChanges()
-
-      // Clean up sync queue
-      await this.cleanupSyncQueue()
-
-      // Update stats
-      this.syncStats.lastSyncTime = new Date()
-      this.syncStats.totalSynced += pushResult.syncedItems || 0
-      this.syncStats.conflictsResolved += pushResult.conflicts?.length || 0
-
-      const result: SyncResult = {
-        success: true,
-        message: `Synced ${pushResult.syncedItems} items successfully`,
-        syncedItems: pushResult.syncedItems,
-        conflicts: pushResult.conflicts,
-        errors: pushResult.errors,
-        lastSyncTime: new Date()
+      if (this.isSyncing && !options.forceFullSync) {
+        return {
+          success: false,
+          message: 'Sync already in progress'
+        }
       }
 
-      this.emit('syncComplete', result)
-      return result
-    } catch (error) {
-      // Sync failed
-      const result: SyncResult = {
-        success: false,
-        message: error instanceof Error ? error.message : 'Sync failed',
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+      this.isSyncing = true
+      this.emit('syncStart', { status: 'syncing', attempt })
+
+      try {
+        const { dirtyRecords } = await this.getDirtyRecords()
+
+        if (dirtyRecords.length === 0 && !options.forceFullSync) {
+          // Pull latest changes from server
+          const pullResult = await this.pullLatestChanges()
+          return {
+            success: true,
+            message: 'No changes to sync',
+            syncedItems: 0,
+            lastSyncTime: new Date()
+          }
+        }
+
+        // Push local changes to server
+        const pushResult = await this.pushLocalChanges(dirtyRecords, options)
+
+        // Pull latest changes from server
+        const pullResult = await this.pullLatestChanges()
+
+        // Clean up sync queue
+        await this.cleanupSyncQueue()
+
+        // Update stats
+        this.syncStats.lastSyncTime = new Date()
+        this.syncStats.totalSynced += pushResult.syncedItems || 0
+        this.syncStats.conflictsResolved += pushResult.conflicts?.length || 0
+
+        const result: SyncResult = {
+          success: true,
+          message: `Synced ${pushResult.syncedItems} items successfully`,
+          syncedItems: pushResult.syncedItems,
+          conflicts: pushResult.conflicts,
+          errors: pushResult.errors,
+          lastSyncTime: new Date()
+        }
+
+        this.emit('syncComplete', result)
+        return result
+      } catch (error) {
+        lastError = error as Error
+        console.error(`Sync attempt ${attempt} failed:`, error)
+
+        if (attempt < maxRetries) {
+          // Exponential backoff
+          const delay = Math.pow(2, attempt) * 1000
+          console.log(`Retrying sync in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      } finally {
+        this.isSyncing = false
       }
-      this.emit('syncError', result)
-      return result
-    } finally {
-      this.isSyncing = false
     }
+
+    // All retries failed
+    const result: SyncResult = {
+      success: false,
+      message: lastError instanceof Error ? lastError.message : 'Sync failed after multiple attempts',
+      errors: [lastError instanceof Error ? lastError.message : 'Unknown error']
+    }
+    this.emit('syncError', result)
+    return result
   }
 
   // Get dirty records that need to be synced
@@ -216,7 +239,6 @@ export class SyncService {
     records: (UserProgressEntity | SessionEntity)[],
     options: SyncOptions
   ): Promise<SyncResult> {
-    const supabase = createClient()
     let syncedItems = 0
     const conflicts: any[] = []
     const errors: string[] = []
@@ -255,12 +277,20 @@ export class SyncService {
           }
         })
 
+        // Get current session to ensure fresh token
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session?.access_token) {
+          throw new Error('No valid authentication token')
+        }
+
         // Call sync API
         const response = await fetch('/api/progress/sync', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.session?.access_token}`
+            'Authorization': `Bearer ${session.access_token}`
           },
           body: JSON.stringify({
             localProgress,
@@ -316,15 +346,34 @@ export class SyncService {
 
   // Pull latest changes from server
   private async pullLatestChanges(): Promise<SyncResult> {
-    const supabase = createClient()
     let pulledItems = 0
 
     try {
+      // Get current session to ensure fresh token
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        throw new Error('No valid authentication token')
+      }
+
       // Get last sync time
       const lastSyncTime = await this.getLastSyncTime()
 
-      // Fetch updates since last sync
-      const { data: remoteProgress, error } = await supabase
+      // Fetch updates since last sync using service client with proper auth
+      const serviceSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          },
+        }
+      )
+
+      const { data: remoteProgress, error } = await serviceSupabase
         .from('user_progress')
         .select('*')
         .eq('user_id', this.user!.id)
@@ -406,7 +455,8 @@ export class SyncService {
     let latestTimestamp = 0
 
     remoteData.forEach(progress => {
-      const dayId = progress.day_id
+      // Handle both day_id and dayId field names
+      const dayId = progress.day_id || progress.dayId
       const dayProgress = {
         completedSections: progress.completed_sections || [],
         completedSlides: progress.completed_slides || [],
@@ -516,16 +566,41 @@ export class SyncService {
 
   // Get last sync time from IndexedDB
   private async getLastSyncTime(): Promise<Date> {
-    const lastSync = localStorage.getItem('ai4designers_last_sync')
-    if (lastSync) {
-      return new Date(lastSync)
+    try {
+      const record = await db.sessionState.where('key').equals('last_sync_time').first()
+      if (record) {
+        return new Date(record.data.timestamp)
+      }
+      return new Date(0) // Return epoch time if no sync has occurred
+    } catch (error) {
+      console.error('Failed to get last sync time from IndexedDB:', error)
+      // Fallback to localStorage if IndexedDB fails
+      const lastSync = localStorage.getItem('ai4designers_last_sync')
+      if (lastSync) {
+        return new Date(lastSync)
+      }
+      return new Date(0)
     }
-    return new Date(0) // Return epoch time if no sync has occurred
   }
 
   // Set last sync time
   private async setLastSyncTime(time: Date): Promise<void> {
-    localStorage.setItem('ai4designers_last_sync', time.toISOString())
+    try {
+      const entity = {
+        key: 'last_sync_time',
+        data: { timestamp: time.toISOString() },
+        updated_at: time,
+        deleted: false,
+        dirty: false,
+        client_id: this.user?.id || 'unknown',
+        sync_version: 1
+      }
+      await db.sessionState.put(entity)
+    } catch (error) {
+      console.error('Failed to save last sync time to IndexedDB:', error)
+      // Fallback to localStorage if IndexedDB fails
+      localStorage.setItem('ai4designers_last_sync', time.toISOString())
+    }
   }
 
   // Clean up sync queue and old records
@@ -601,7 +676,9 @@ export class SyncService {
   async clearSyncData(): Promise<void> {
     this.stopAutoSync()
     await db.clearAllData()
+    // Clear localStorage items
     localStorage.removeItem('ai4designers_last_sync')
+    localStorage.removeItem('ai4designers_client_id')
     this.syncStats = {
       isOnline: this.isOnline,
       pendingItems: 0,

@@ -8,6 +8,7 @@ import { CourseProvider } from '@/contexts/CourseContext'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AuthGuard } from '@/components/auth-guard'
 import { ServiceWorkerManager } from '@/components/ServiceWorkerManager'
+import { SyncStatus } from '@/components/sync-status'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -66,6 +67,7 @@ export default function RootLayout({
             </CourseProvider>
           </AuthGuard>
         </Providers>
+        <SyncStatus />
       </body>
     </html>
   )

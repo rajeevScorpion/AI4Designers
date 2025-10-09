@@ -3,8 +3,10 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import type { User, AuthError } from '@supabase/supabase-js'
+import type { User, AuthError, Session } from '@supabase/supabase-js'
 import { authService } from '@/lib/auth'
+import { syncService } from '@/lib/sync'
+import { progressStorage } from '@/lib/progressStorage'
 
 interface AuthResult {
   success: boolean
@@ -73,16 +75,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('Setting user after SIGNED_IN:', session.user.email)
           setUser(session.user)
+
+          // Initialize sync service and load existing progress
+          try {
+            await syncService.initialize(session)
+            console.log('Sync service initialized for user:', session.user.email)
+
+            // Load existing progress from server
+            await progressStorage.loadRemoteProgress()
+            console.log('Remote progress loaded for user:', session.user.email)
+          } catch (error) {
+            console.error('Failed to initialize sync or load progress:', error)
+          }
         } else if (event === 'SIGNED_OUT') {
           console.log('Clearing user after SIGNED_OUT')
           setUser(null)
+
+          // Clear sync data
+          try {
+            await syncService.clearSyncData()
+            console.log('Sync data cleared on sign out')
+          } catch (error) {
+            console.error('Failed to clear sync data:', error)
+          }
         } else if (event === 'TOKEN_REFRESHED') {
           // Update user state when token is refreshed
           console.log('Updating user after TOKEN_REFRESHED:', session?.user?.email)
           setUser(session?.user ?? null)
+
+          // Reinitialize sync service with new token
+          if (session) {
+            await syncService.initialize(session)
+          }
         } else if (event === 'INITIAL_SESSION') {
           console.log('Setting initial session user:', session?.user?.email)
           setUser(session?.user ?? null)
+
+          // Initialize sync service for initial session
+          if (session?.user) {
+            try {
+              await syncService.initialize(session)
+              console.log('Sync service initialized for initial session')
+
+              // Load existing progress
+              await progressStorage.loadRemoteProgress()
+              console.log('Remote progress loaded for initial session')
+            } catch (error) {
+              console.error('Failed to initialize sync on initial session:', error)
+            }
+          }
         }
       }
     )
