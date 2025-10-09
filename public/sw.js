@@ -75,6 +75,11 @@ self.addEventListener('fetch', (event) => {
 
 // Handle static asset requests (cache-first)
 async function handleStaticRequest(request) {
+  // Skip caching for OPTIONS and HEAD requests
+  if (request.method === 'OPTIONS' || request.method === 'HEAD') {
+    return fetch(request)
+  }
+
   try {
     const cachedResponse = await caches.match(request)
     if (cachedResponse) {
